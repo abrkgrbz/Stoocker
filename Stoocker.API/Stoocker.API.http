@@ -1,0 +1,6 @@
+@Stoocker.API_HostAddress = http://localhost:5081
+
+GET {{Stoocker.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
