@@ -28,3 +28,23 @@ A clean architecture implementation of Repository Pattern with Unit of Work and 
 ├── WriteRepository<T>
 ├── SpecificationRepository<T>
 └── UnitOfWork
+
+## Usage Example
+
+```csharp
+// Simple query
+var product = await _unitOfWork
+    .GetReadRepository<Product>()
+    .AsNoTracking()
+    .GetByIdAsync(productId);
+
+// Complex query with specifications
+var spec = new ProductWithCategorySpecification(minPrice: 100);
+var products = await _unitOfWork
+    .GetSpecificationRepository<Product>()
+    .FindAsync(spec);
+
+// Write operation
+var writeRepo = _unitOfWork.GetWriteRepository<Product>();
+await writeRepo.AddAsync(newProduct);
+await _unitOfWork.SaveChangesAsync();
