@@ -13,23 +13,26 @@ A clean architecture implementation of Repository Pattern with Unit of Work and 
 - **Fluent API**: Chain tracking configuration
 
 ## Architecture
-tech-stack:
-  architecture: "Clean Architecture"
-  patterns: 
-    - "Repository Pattern"
-    - "Unit of Work"
-    - "Specification Pattern"
-  
-  structure:
-    core:
-      - type: "interfaces"
-        location: "/Core/Application/Interfaces"
-        components: ["IRepository", "IReadRepository", "IWriteRepository", "IUnitOfWork", "ISpecification"]
-    
-    infrastructure:
-      - type: "implementations"
-        location: "/Infrastructure/Persistence"
-        components: ["ReadRepository", "WriteRepository", "SpecRepository", "UnitOfWork"]
+🏗️ Repository Pattern Implementation
+│
+├── 📦 Core Layer
+│   └── 🔷 Application
+│       └── 📁 Interfaces
+│           ├── 🔹 IRepository<T>
+│           ├── 🔹 IReadRepository<T>  
+│           ├── 🔹 IWriteRepository<T>
+│           ├── 🔹 IUnitOfWork
+│           └── 🔹 ISpecification<T>
+│
+└── 📦 Infrastructure Layer
+    └── 🔶 Persistence
+        ├── 📁 Repositories
+        │   ├── 📄 ReadRepository<T>
+        │   ├── 📄 WriteRepository<T>
+        │   ├── 📄 SpecificationRepository<T>
+        │   └── 📄 UnitOfWork
+        └── 📁 Specifications
+            └── 📄 SpecificationEvaluator<T>
 ## Usage Example
 
 ```csharp
