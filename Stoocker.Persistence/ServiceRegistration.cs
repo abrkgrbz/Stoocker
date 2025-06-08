@@ -10,6 +10,12 @@ using Stoocker.Application.Interfaces.Repositories.Specification;
 using Stoocker.Domain.Entities;
 using Stoocker.Persistence.Contexts;
 using Stoocker.Persistence.Repositories;
+using Stoocker.Application.Interfaces.Repositories.Entities.ApplicationRole;
+using Stoocker.Application.Interfaces.Repositories.Entities.ApplicationUser;
+using Stoocker.Application.Interfaces.Repositories.Entities.ApplicationUserRole;
+using Stoocker.Application.Interfaces.Repositories.Entities.Tenant;
+using Stoocker.Persistence.Repositories.Entities.Tenant;
+using Stoocker.Persistence.Repositories.Entities;
 
 namespace Stoocker.Persistence
 {
@@ -49,10 +55,19 @@ namespace Stoocker.Persistence
                  .AddRoles<ApplicationRole>()
                  .AddEntityFrameworkStores<ApplicationDbContext>();
 
+            services.AddScoped<IUnitOfWork, UnitOfWork>();
+
+            // Generic Repositories
             services.AddScoped(typeof(IReadRepository<>), typeof(ReadRepository<>));
             services.AddScoped(typeof(IWriteRepository<>), typeof(WriteRepository<>));
-            services.AddScoped(typeof(ISpecificationRepository<>), typeof(SpecificationRepository<>));
-            services.AddScoped<IUnitOfWork, UnitOfWork>();
+            services.AddScoped(typeof(ITenantReadRepository<>), typeof(TenantReadRepository<>));
+            services.AddScoped(typeof(ITenantWriteRepository<>), typeof(TenantWriteRepository<>));
+
+            // Specific Repositories
+            services.AddScoped<IApplicationUserRepository, ApplicationUserRepository>();
+            services.AddScoped<IApplicationRoleRepository, ApplicationRoleRepository>();
+            services.AddScoped<IApplicationUserRoleRepository, ApplicationUserRoleRepository>();
+
         }
     }
 }

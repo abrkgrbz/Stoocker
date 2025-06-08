@@ -13,7 +13,8 @@ namespace Stoocker.Persistence.Repositories
     public class WriteRepository<T> : IWriteRepository<T> where T : BaseEntity
     {
         private readonly ApplicationDbContext _context;
-        private readonly DbSet<T> _dbSet;
+        protected readonly DbSet<T> _dbSet;
+
 
         public WriteRepository(ApplicationDbContext context)
         {
