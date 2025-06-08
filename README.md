@@ -1,7 +1,7 @@
 # 🚀 Generic Repository Pattern with Unit of Work
 
 [![.NET](https://img.shields.io/badge/.NET-9+-512BD4?style=flat-square&logo=dotnet)](https://dotnet.microsoft.com/)
-[![EF Core](https://img.shields.io/badge/EF%20Core-6+-512BD4?style=flat-square&logo=microsoft)](https://docs.microsoft.com/en-us/ef/core/)
+[![EF Core](https://img.shields.io/badge/EF%20Core-9+-512BD4?style=flat-square&logo=microsoft)](https://docs.microsoft.com/en-us/ef/core/)
 [![C#](https://img.shields.io/badge/C%23-10+-239120?style=flat-square&logo=c-sharp)](https://docs.microsoft.com/en-us/dotnet/csharp/)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](LICENSE)
 
