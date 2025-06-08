@@ -13,3 +13,18 @@ A clean architecture implementation of Repository Pattern with Unit of Work and 
 - **Fluent API**: Chain tracking configuration
 
 ## Architecture
+├── Core/
+│   └── Application/
+│       └── Interfaces/
+│           ├── IRepository<T>
+│           ├── IReadRepository<T>
+│           ├── IWriteRepository<T>
+│           ├── IUnitOfWork
+│           └── ISpecification<T>
+└── Infrastructure/
+└── Persistence/
+└── Repositories/
+├── ReadRepository<T>
+├── WriteRepository<T>
+├── SpecificationRepository<T>
+└── UnitOfWork
