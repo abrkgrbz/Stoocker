@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Stoocker.Application.Interfaces.Repositories.Entities.Warehouse
 {
-    internal interface IWarehouseReadRepository :IReadRepository<Domain.Entities.Warehouse>
+    public interface IWarehouseReadRepository :IReadRepository<Domain.Entities.Warehouse>
     {
     }
 }

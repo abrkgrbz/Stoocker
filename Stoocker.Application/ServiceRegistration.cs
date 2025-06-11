@@ -8,6 +8,8 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using FluentValidation;
+using MediatR;
+using Stoocker.Application.Behaviors;
 
 namespace Stoocker.Application
 {
@@ -15,11 +17,20 @@ namespace Stoocker.Application
     {
         public static void AddApplicationServices(this IServiceCollection services)
         {
+            var assembly = Assembly.GetExecutingAssembly();
+
+            // MediatR
+            services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(assembly));
+
             // AutoMapper
-            services.AddAutoMapper(Assembly.GetExecutingAssembly());
+            services.AddAutoMapper(assembly);
 
             // FluentValidation
             services.AddValidatorsFromAssembly(typeof(ServiceRegistration).Assembly);
+
+            // MediatR Pipeline Behaviors
+            services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
+            services.AddTransient(typeof(IPipelineBehavior<,>), typeof(LoggingBehavior<,>));
 
             // Services
             services.AddScoped<IUserService, UserService>();

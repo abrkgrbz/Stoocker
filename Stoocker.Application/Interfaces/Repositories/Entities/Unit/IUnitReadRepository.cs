@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Stoocker.Application.Interfaces.Repositories.Entities.Unit
 {
-    internal interface IUnitReadRepository:IReadRepository<Domain.Entities.Unit>
+    public interface IUnitReadRepository:IReadRepository<Domain.Entities.Unit>
     {
     }
 }

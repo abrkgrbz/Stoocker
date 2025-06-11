@@ -56,7 +56,9 @@ namespace Stoocker.Application.Validators.User
         private async Task<bool> BeUniqueEmail(string email, CancellationToken cancellationToken)
         {
             // Bu metod service layer'da tenant bilgisi ile kontrol edilmeli
-            return true;
+            var tenantId = _unitOfWork.GetCurrentTenant().Value;
+            var isUniqueEmail = await _unitOfWork.Users.IsEmailUniqueAsync(email, tenantId, null, cancellationToken);
+            return isUniqueEmail;
         }
 
         private bool BeValidTimeZone(string? timeZone)

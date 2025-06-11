@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Stoocker.Persistence.Repositories
+namespace Stoocker.Application.Interfaces.Services.BackgrounJobs
 {
-    internal class UnitOfWork
+    public interface IDataCleanupJob:IBackgroundJob
     {
     }
 }
