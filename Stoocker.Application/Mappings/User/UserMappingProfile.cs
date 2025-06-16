@@ -8,7 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Stoocker.Application.Mappings
+namespace Stoocker.Application.Mappings.User
 {
     public class UserMappingProfile : Profile
     {

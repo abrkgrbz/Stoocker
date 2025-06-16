@@ -17,6 +17,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Stoocker.Persistence.Repositories.Entities;
+using Stoocker.Persistence.Repositories.Entities.Tenant.Specifications;
 
 namespace Stoocker.Persistence
 {
@@ -29,6 +30,7 @@ namespace Stoocker.Persistence
 
         // Lazy-loaded repositories
         private IApplicationUserRepository? _userRepository;
+        private ITenantSpecReadRepository? _tenantSpecReadRepository;
         private IApplicationRoleRepository? _roleRepository;
         private IApplicationUserRoleRepository? _userRoleRepository;
         private IReadRepository<Tenant>? _tenantRepository;
@@ -50,6 +52,9 @@ namespace Stoocker.Persistence
 
         public IReadRepository<Tenant> Tenants =>
             _tenantRepository ??= new ReadRepository<Tenant>(_context);
+
+        public ITenantSpecReadRepository TenantSpecs =>
+            _tenantSpecReadRepository ??= new TenantSpecReadRepository(_context);
 
         public IReadRepository<T> GetReadRepository<T>() where T : BaseEntity
         {

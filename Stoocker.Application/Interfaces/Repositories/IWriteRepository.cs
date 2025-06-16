@@ -11,9 +11,9 @@ namespace Stoocker.Application.Interfaces.Repositories
     {
         Task<T> AddAsync(T entity, CancellationToken cancellationToken = default);
         Task AddRangeAsync(IEnumerable<T> entities, CancellationToken cancellationToken = default);
-        void Update(T entity);
+        void Update(T entity, CancellationToken cancellationToken = default);
         void UpdateRange(IEnumerable<T> entities);
-        void Remove(T entity);
+        void Remove(T entity, CancellationToken cancellationToken = default);
         void RemoveRange(IEnumerable<T> entities);
         Task RemoveByIdAsync(Guid id, CancellationToken cancellationToken = default);
     }

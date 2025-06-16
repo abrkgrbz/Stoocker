@@ -5,10 +5,11 @@ using System.Text;
 using System.Threading.Tasks;
 using Stoocker.Application.Interfaces.Repositories.Entities.PurchaseInvoiceDetail;
 using Stoocker.Persistence.Contexts;
+using Stoocker.Persistence.Repositories.Specification;
 
 namespace Stoocker.Persistence.Repositories.Entities.PurchaseInvoiceDetail
 {
-    public class PurchaseInvoiceDetailReadRepository:ReadRepository<Domain.Entities.PurchaseInvoiceDetail>,IPurchaseInvoiceDetailReadRepository
+    public class PurchaseInvoiceDetailReadRepository: SpecificationRepository<Domain.Entities.PurchaseInvoiceDetail>,IPurchaseInvoiceDetailReadRepository
     {
         public PurchaseInvoiceDetailReadRepository(ApplicationDbContext context) : base(context)
         {

@@ -92,9 +92,25 @@ namespace Stoocker.Application.Services
             }
         }
 
-        public Task<Result<UserDetailResponse>> GetUserDetailsAsync(Guid userId, Guid tenantId, CancellationToken cancellationToken = default)
+        public async Task<Result<UserDetailResponse>> GetUserDetailsAsync(Guid userId, Guid tenantId, CancellationToken cancellationToken = default)
         {
-            throw new NotImplementedException();
+            try
+            {
+                var user=await _unitOfWork.Users.GetByIdAsync(userId, tenantId, cancellationToken);
+                if (user == null)
+                {
+                    return Result<UserDetailResponse>.Failure("User not found");
+                }
+
+                var dto = _mapper.Map<UserDetailResponse>(user);
+                return Result<UserDetailResponse>.Success(dto);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting users for GetUserDetailAsync {UserId}", userId);
+                return Result<UserDetailResponse>.Failure("An error occurred while getting users detail");
+
+            }
         }
 
         public async Task<Result<UserResponse>> CreateUserAsync(CreateUserRequest dto, Guid tenantId, CancellationToken cancellationToken = default)
@@ -234,6 +250,24 @@ namespace Stoocker.Application.Services
         public Task<Result> ResetPasswordAsync(Guid userId, string newPassword, Guid tenantId, CancellationToken cancellationToken = default)
         {
             throw new NotImplementedException();
+        }
+
+        public async Task<Result<ApplicationUser>> GetByEmailAsync(string email, CancellationToken cancellationToken = default)
+        {
+            var user=await _unitOfWork.Users.Query()
+                .FirstOrDefaultAsync(u => u.Email == email, cancellationToken);
+            return user == null
+                ? Result<ApplicationUser>.Failure("User not found")
+                : Result<ApplicationUser>.Success(user);
+        }
+
+        public async Task<Result<ApplicationUser>> GetByRefreshTokenAsync(string refreshToken, CancellationToken cancellationToken = default)
+        {
+            var user=await _unitOfWork.Users.Query()
+                .FirstOrDefaultAsync(u => u.RefreshToken == refreshToken, cancellationToken);
+            return user == null
+                ? Result<ApplicationUser>.Failure("User not found")
+                : Result<ApplicationUser>.Success(user);
         }
     }
 }

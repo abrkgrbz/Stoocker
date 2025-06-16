@@ -15,7 +15,7 @@ using Stoocker.Application.DTOs.User.Response;
 using Stoocker.Application.Interfaces.Repositories;
 using Stoocker.Application.Interfaces.Repositories.Entities.Brand;
 
-namespace Stoocker.Application.Features.Commands.Brand
+namespace Stoocker.Application.Features.Commands.Brand.Create
 {
     public class CreateBrandCommandHandler:IRequestHandler<CreateBrandCommand,Result<CreateBrandResponse>>
     {

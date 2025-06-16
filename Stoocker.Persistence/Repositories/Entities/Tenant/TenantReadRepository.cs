@@ -1,18 +1,15 @@
 ﻿using Stoocker.Application.Interfaces.Repositories.Entities.Tenant;
 using Stoocker.Domain.Common;
-using Stoocker.Persistence.Contexts;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
+using Stoocker.Persistence.Contexts; 
+using System.Linq.Expressions; 
+using Microsoft.EntityFrameworkCore; 
+using Stoocker.Persistence.Repositories.Specification;
+using Stoocker.Persistence.Repositories.Entities.Brand.Specifications;
 
 namespace Stoocker.Persistence.Repositories.Entities.Tenant
 {
-    public class TenantReadRepository<T> : ReadRepository<T>, ITenantReadRepository<T>
-        where T : BaseEntity, ITenantEntity
+    public class TenantReadRepository<T> : SpecificationRepository<T>, ITenantReadRepository<T>
+        where T : BaseEntity,ITenantEntity
     {
         public TenantReadRepository(ApplicationDbContext context) : base(context) { }
 
@@ -45,10 +42,11 @@ namespace Stoocker.Persistence.Repositories.Entities.Tenant
                 .Where(predicate)
                 .ToListAsync(cancellationToken);
         }
-
+         
         public IQueryable<T> QueryByTenant(Guid tenantId)
         {
             return _dbSet.Where(e => e.TenantId == tenantId);
         }
+        
     }
 }

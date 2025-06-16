@@ -35,6 +35,8 @@ namespace Stoocker.Application
             // Services
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<ICurrentUserService, CurrentUserService>();
+            services.AddScoped<IAuthService, AuthService>();
+            services.AddScoped<ITenantService, TenantService>();
 
             services.AddHttpContextAccessor();
 

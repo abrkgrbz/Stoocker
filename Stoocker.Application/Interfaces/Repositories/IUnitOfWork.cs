@@ -29,7 +29,8 @@ namespace Stoocker.Application.Interfaces.Repositories
         
         // Tenant Repository
         IReadRepository<Tenant> Tenants { get; }
-        
+        ITenantSpecReadRepository TenantSpecs { get; }
+
         // Transaction Management
         Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
         Task<int> SaveChangesAsync(Guid? userId, CancellationToken cancellationToken = default); // Audit için

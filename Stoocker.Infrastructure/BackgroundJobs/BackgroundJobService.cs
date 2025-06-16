@@ -1,7 +1,7 @@
 ﻿using Hangfire.States;
 using Hangfire;
-using Serilog; 
-using Stoocker.Application.Interfaces.Services;
+using Serilog;
+using Stoocker.Application.Interfaces.Services.BackgrounJobs;
 
 namespace Stoocker.Infrastructure.BackgroundJobs
 {

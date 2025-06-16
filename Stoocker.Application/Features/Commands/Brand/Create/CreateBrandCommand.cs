@@ -8,7 +8,7 @@ using Stoocker.Application.DTOs.Brand.Request;
 using Stoocker.Application.DTOs.Brand.Response;
 using Stoocker.Application.DTOs.Common;
 
-namespace Stoocker.Application.Features.Commands.Brand
+namespace Stoocker.Application.Features.Commands.Brand.Create
 {
     public record CreateBrandCommand(
         string name,

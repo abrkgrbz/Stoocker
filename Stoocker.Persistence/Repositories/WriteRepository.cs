@@ -33,7 +33,7 @@ namespace Stoocker.Persistence.Repositories
             await _dbSet.AddRangeAsync(entities, cancellationToken);
         }
 
-        public void Update(T entity)
+        public void Update(T entity, CancellationToken cancellationToken = default)
         {
             _dbSet.Update(entity);
         }
@@ -43,7 +43,7 @@ namespace Stoocker.Persistence.Repositories
             _dbSet.UpdateRange(entities);
         }
 
-        public void Remove(T entity)
+        public void Remove(T entity, CancellationToken cancellationToken = default)
         {
             _dbSet.Remove(entity);
         }

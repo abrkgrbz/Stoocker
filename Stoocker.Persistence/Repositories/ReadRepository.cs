@@ -5,6 +5,7 @@ using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using Stoocker.Application.DTOs.Common;
 using Stoocker.Application.Interfaces.Repositories;
 using Stoocker.Domain.Common;
 using Stoocker.Persistence.Contexts;
@@ -39,6 +40,8 @@ namespace Stoocker.Persistence.Repositories
             return await Query().ToListAsync(cancellationToken);
         }
 
+     
+
         public async Task<T?> FirstOrDefaultAsync(Expression<Func<T, bool>> predicate, CancellationToken cancellationToken = default)
         {
             return await Query().FirstOrDefaultAsync(predicate, cancellationToken);
@@ -60,6 +63,9 @@ namespace Stoocker.Persistence.Repositories
                 ? await Query().CountAsync(cancellationToken)
                 : await Query().CountAsync(predicate, cancellationToken);
         }
+
+        
+
 
         public IReadRepository<T> AsNoTracking()
         {

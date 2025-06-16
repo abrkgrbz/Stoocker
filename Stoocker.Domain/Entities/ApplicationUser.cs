@@ -21,6 +21,8 @@ namespace Stoocker.Domain.Entities
         public string? TimeZone { get; set; } = "Europe/Istanbul";
         public string? Language { get; set; } = "tr-TR";
         public bool IsDeleted { get; set; } = false;
+        public string? RefreshToken { get; set; }
+        public DateTime? RefreshTokenExpiry { get; set; }
 
         // Computed Properties
         public string FullName => $"{FirstName} {LastName}".Trim();

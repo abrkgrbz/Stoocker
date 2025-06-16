@@ -3,6 +3,7 @@ using Stoocker.Application.DTOs.Common;
 using Stoocker.Application.DTOs.Role.Response;
 using Stoocker.Application.DTOs.User.Request;
 using Stoocker.Application.DTOs.User.Response;
+using Stoocker.Domain.Entities;
 
 namespace Stoocker.Application.Interfaces.Services
 {
@@ -19,6 +20,7 @@ namespace Stoocker.Application.Interfaces.Services
         Task<Result<List<RoleResponse>>> GetUserRolesAsync(Guid userId, Guid tenantId, CancellationToken cancellationToken = default);
         Task<Result> ChangePasswordAsync(Guid userId, string currentPassword, string newPassword, CancellationToken cancellationToken = default);
         Task<Result> ResetPasswordAsync(Guid userId, string newPassword, Guid tenantId, CancellationToken cancellationToken = default);
-
+        Task<Result<ApplicationUser>> GetByEmailAsync(string email, CancellationToken cancellationToken = default);
+        Task<Result<ApplicationUser>> GetByRefreshTokenAsync(string refreshToken, CancellationToken cancellationToken = default);
     }
 }

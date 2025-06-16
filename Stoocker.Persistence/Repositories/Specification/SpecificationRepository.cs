@@ -8,7 +8,7 @@ using Stoocker.Application.Interfaces.Repositories.Specification;
 using Stoocker.Domain.Common;
 using Stoocker.Persistence.Contexts;
 
-namespace Stoocker.Persistence.Repositories
+namespace Stoocker.Persistence.Repositories.Specification
 {
     public class SpecificationRepository<T> : ReadRepository<T>, ISpecificationRepository<T>
         where T : BaseEntity

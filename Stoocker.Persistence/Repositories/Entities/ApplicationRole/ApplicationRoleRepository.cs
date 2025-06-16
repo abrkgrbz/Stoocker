@@ -1,9 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using Stoocker.Application.DTOs.Common;
+using Stoocker.Application.DTOs.Role.Response;
 using Stoocker.Application.Interfaces.Repositories.Entities.ApplicationRole;
 using Stoocker.Domain.Entities;
 using Stoocker.Persistence.Contexts;
@@ -45,6 +48,22 @@ namespace Stoocker.Persistence.Repositories.Entities
                     .ThenInclude(ur => ur.User)
                 .FirstOrDefaultAsync(r => r.Id == roleId, cancellationToken);
         }
+
+        public async Task<IEnumerable<ApplicationRole>> GetPagedAsync(Guid tenantId, int page = 1, int pageSize = 10, CancellationToken cancellationToken = default)
+        {
+            return await _roles.Where(r => r.TenantId == tenantId)
+                .OrderBy(r => r.Name)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync(cancellationToken);
+        }
+
+        public async Task<ApplicationRole> GetByIdAsync(Guid roleId, Guid tenantId, CancellationToken cancellationToken = default)
+        {
+            return await _roles.FirstOrDefaultAsync(r => r.Id == roleId && r.TenantId == tenantId, cancellationToken)
+                ?? throw new KeyNotFoundException($"Role with ID {roleId} not found for tenant {tenantId}.");
+        }
+
 
         // Tenant-specific Operations
         public async Task<IEnumerable<ApplicationRole>> GetAllByTenantAsync(Guid tenantId, bool includeSystemRoles = false, CancellationToken cancellationToken = default)
@@ -139,6 +158,13 @@ namespace Stoocker.Persistence.Repositories.Entities
             var hasActiveUsers = role.UserRoles.Any(ur => ur.IsActive);
 
             return !hasActiveUsers;
+        }
+
+        public async Task<int> CountAsync(Expression<Func<ApplicationRole, bool>>? predicate = null, CancellationToken cancellationToken = default)
+        {
+            return predicate == null
+                ? await Query().CountAsync(cancellationToken)
+                : await Query().CountAsync(predicate, cancellationToken);
         }
     }
 }

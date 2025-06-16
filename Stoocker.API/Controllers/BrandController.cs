@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Stoocker.Application.Features.Commands.Brand;
+using Stoocker.Application.Features.Commands.Brand.Create;
+using Stoocker.Application.Features.Queries.Brand.GetBrand;
+using Stoocker.Application.Features.Queries.Brand.GetBrands;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -9,13 +11,18 @@ namespace Stoocker.API.Controllers
     [ApiController]
     public class BrandController : BaseApiController
     {
-        
+        [HttpGet("GetBrand")]
+        public async Task<IActionResult> GetBrand([FromQuery] GetBrandQuery query)
+        {
+            var result = await Mediator.Send(query);
+            return Ok(result);
+        }
 
-        [HttpGet("GetBrand/{id}")]
-        public async Task<IActionResult> GetBrand(int id)
-        { 
-
-            return Ok();
+        [HttpGet("GetBrands")]
+        public async Task<IActionResult> GetBrands([FromQuery] GetBrandsQuery query)
+        {
+            var result = await Mediator.Send(query);
+            return Ok(result);
         }
 
         [HttpPost("CreateBrand")]
@@ -25,7 +32,7 @@ namespace Stoocker.API.Controllers
             if (!result.IsSuccess)
                 return BadRequest(result);
 
-            return CreatedAtAction(nameof(GetBrand), new { id = result.Data?.Id }, result);
+            return CreatedAtAction(nameof(GetBrands), new { id = result.Data?.Id }, result);
         }
     }
 }

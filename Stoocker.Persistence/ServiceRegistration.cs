@@ -4,7 +4,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Stoocker.Application.Interfaces.Repositories;
 using Stoocker.Application.Interfaces.Repositories.Specification;
 using Stoocker.Domain.Entities;
@@ -38,8 +40,10 @@ using Stoocker.Persistence.Repositories.Entities.PurchaseInvoiceDetail;
 using Stoocker.Persistence.Repositories.Entities.SalesInvoice;
 using Stoocker.Persistence.Repositories.Entities.StockMovement;
 using Stoocker.Persistence.Repositories.Entities.Supplier;
+using Stoocker.Persistence.Repositories.Entities.Tenant.Specifications;
 using Stoocker.Persistence.Repositories.Entities.Unit;
 using Stoocker.Persistence.Repositories.Entities.Warehouse;
+using Stoocker.Persistence.Repositories.Specification;
 
 namespace Stoocker.Persistence
 {
@@ -79,20 +83,42 @@ namespace Stoocker.Persistence
                  .AddRoles<ApplicationRole>()
                  .AddEntityFrameworkStores<ApplicationDbContext>();
 
+            // JWT Authentication
+            services.AddAuthentication(options =>
+                 {
+                     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                     options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                 })
+                 .AddJwtBearer(options =>
+                 {
+                     options.TokenValidationParameters = new TokenValidationParameters
+                     {
+                         ValidateIssuerSigningKey = true,
+                         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration.GetJwtSettings().SecretKey)),
+                         ValidateIssuer = true,
+                         ValidIssuer = Configuration.GetJwtSettings().Issuer,
+                         ValidateAudience = true,
+                         ValidAudience = Configuration.GetJwtSettings().Audience,
+                         ClockSkew = TimeSpan.Zero
+                     };
+                 });
             services.AddScoped<IUnitOfWork, UnitOfWork>();
 
             // Generic Repositories
             services.AddScoped(typeof(IReadRepository<>), typeof(ReadRepository<>));
             services.AddScoped(typeof(IWriteRepository<>), typeof(WriteRepository<>));
+            services.AddScoped(typeof(ISpecificationRepository<>), typeof(SpecificationRepository<>));
+
             services.AddScoped(typeof(ITenantReadRepository<>), typeof(TenantReadRepository<>));
             services.AddScoped(typeof(ITenantWriteRepository<>), typeof(TenantWriteRepository<>));
+            services.AddScoped<ITenantSpecReadRepository, TenantSpecReadRepository>();
 
             // Specific Repositories
             services.AddScoped<IApplicationUserRepository, ApplicationUserRepository>();
             services.AddScoped<IApplicationRoleRepository, ApplicationRoleRepository>();
             services.AddScoped<IApplicationUserRoleRepository, ApplicationUserRoleRepository>();
 
-            services.AddScoped<IBrandReadRepository, BrandReadRepository>(); 
+            services.AddScoped<IBrandReadRepository, BrandReadRepository>();
             services.AddScoped<IBrandWriteRepository, BrandWriteRepository>();
 
             services.AddScoped<ICategoryReadRepository, CategoryReadRepository>();
@@ -121,10 +147,10 @@ namespace Stoocker.Persistence
 
             services.AddScoped<ISupplierReadRepository, SupplierReadRepository>();
             services.AddScoped<ISupplierWriteRepository, SupplierWriteRepository>();
-             
+
             services.AddScoped<IUnitReadRepository, UnitReadRepository>();
             services.AddScoped<IUnitWriteRepository, UnitWriteRepository>();
-             
+
             services.AddScoped<IWarehouseReadRepository, WarehouseReadRepository>();
             services.AddScoped<IWarehouseWriteRepository, WarehouseWriteRepository>();
         }

@@ -4,6 +4,7 @@ using Stoocker.Persistence.Contexts;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 using Stoocker.Domain.Entities;
@@ -72,7 +73,7 @@ namespace Stoocker.Persistence.Repositories.Entities
             return _users.Where(u => !u.IsDeleted);
         }
 
-        public IQueryable<ApplicationUser> QueryByTenant(Guid tenantId)
+        public IQueryable<ApplicationUser>  (Guid tenantId)
         {
             return _users.Where(u => u.TenantId == tenantId && !u.IsDeleted);
         }
@@ -122,6 +123,12 @@ namespace Stoocker.Persistence.Repositories.Entities
         {
             return await _users.CountAsync(u => u.TenantId == tenantId && u.IsActive && !u.IsDeleted, cancellationToken);
         }
-         
+
+        public async Task<int> CountAsync(Expression<Func<ApplicationUser, bool>>? predicate = null, CancellationToken cancellationToken = default)
+        {
+            return predicate == null
+                ? await Query().CountAsync(cancellationToken)
+                : await Query().CountAsync(predicate, cancellationToken);
+        }
     }
 }

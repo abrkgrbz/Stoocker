@@ -8,7 +8,6 @@ using Hangfire;
 using Hangfire.SqlServer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
-using Stoocker.Application.Interfaces.Services;
 using Stoocker.Application.Interfaces.Services.BackgrounJobs;
 
 namespace Stoocker.Infrastructure.BackgroundJobs

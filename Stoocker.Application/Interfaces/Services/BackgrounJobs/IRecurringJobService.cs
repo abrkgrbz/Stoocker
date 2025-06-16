@@ -5,7 +5,7 @@ using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Stoocker.Application.Interfaces.Services
+namespace Stoocker.Application.Interfaces.Services.BackgrounJobs
 {
     public interface IRecurringJobService
     {
