@@ -5,225 +5,256 @@
 [![C#](https://img.shields.io/badge/C%23-10+-239120?style=flat-square&logo=c-sharp)](https://docs.microsoft.com/en-us/dotnet/csharp/)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](LICENSE)
 
-A clean architecture implementation of Repository Pattern with Unit of Work and Specification Pattern support for .NET applications.
+# Stoocker - Stok Yönetim Sistemi
 
-## ✨ Features
+Stoocker, .NET 9 tabanlı, Clean Architecture prensiplerine göre geliştirilmiş modern bir stok yönetim sistemidir. Multi-tenant mimariye sahip olan bu sistem, işletmelerin stok takibi, satış ve satın alma operasyonlarını verimli bir şekilde yönetmelerini sağlar.
 
-- 🎯 **Generic Repository Pattern** - Type-safe, reusable data access layer
-- 💼 **Unit of Work** - Transaction management and repository coordination
-- 🔍 **Specification Pattern** - Encapsulate and reuse complex queries
-- 📖 **Read/Write Separation** - Following CQRS principles
-- ⚡ **High Performance** - Optimized for Entity Framework Core
-- 🔄 **Full Async Support** - All operations support async/await with CancellationToken
-- 🔗 **Fluent API** - Chain operations for better readability
+## 🚀 Özellikler
 
-## 📁 Project Structure
+- **Multi-Tenant Mimari**: Birden fazla müşterinin aynı uygulama üzerinde çalışabilmesi
+- **Clean Architecture**: Katmanlı mimari ile sürdürülebilir ve test edilebilir kod yapısı
+- **CQRS Pattern**: MediatR kullanarak komut ve sorgu işlemlerinin ayrılması
+- **Identity Management**: ASP.NET Core Identity ile kullanıcı ve rol yönetimi
+- **Background Jobs**: Hangfire ile arka plan işlemleri
+- **Monitoring**: OpenTelemetry, Prometheus ve Health Checks ile sistem izleme
+- **Logging**: Serilog ile yapılandırılabilir loglama (Console, File, Elasticsearch, Seq)
+- **Validation**: FluentValidation ile veri doğrulama
+- **Auto Mapping**: AutoMapper ile nesne dönüştürme
+- **API Documentation**: Swagger ile API dokümantasyonu
+
+## 🏗️ Proje Mimarisi
+
+Proje Clean Architecture prensiplerine uygun olarak 5 ana katmandan oluşur:
 
 ```
-🏗️ Repository Pattern Architecture
-│
-├── 📦 Core Layer
-│   └── 🔷 Application
-│       └── 📁 Interfaces
-│           ├── 🔹 IRepository<T>
-│           ├── 🔹 IReadRepository<T>  
-│           ├── 🔹 IWriteRepository<T>
-│           ├── 🔹 IUnitOfWork
-│           └── 🔹 ISpecification<T>
-│
-└── 📦 Infrastructure Layer
-    └── 🔶 Persistence
-        ├── 📁 Repositories
-        │   ├── 📄 ReadRepository<T>
-        │   ├── 📄 WriteRepository<T>
-        │   ├── 📄 SpecificationRepository<T>
-        │   └── 📄 UnitOfWork
-        └── 📁 Specifications
-            └── 📄 SpecificationEvaluator<T>
+Stoocker/
+├── Stoocker.API/                          # Presentation Layer
+├── Stoocker.Application/                  # Application Layer
+├── Stoocker.Domain/                       # Domain Layer
+├── Stoocker.Infrastructure/               # Infrastructure Layer
+├── Stoocker.Infrastructure.BackgroundJobs/# Background Jobs
+└── Stoocker.Persistence/                  # Data Access Layer
 ```
 
-## 🎯 Architecture Overview
+### Katman Detayları
 
-<details>
-<summary><b>Clean Architecture Layers</b></summary>
+#### 🎯 **Stoocker.API** (Presentation Layer)
+- Web API endpoints
+- Swagger konfigürasyonu
+- Middleware konfigürasyonu
+- Dependency injection container
 
-```mermaid
-graph TD
-    A[Domain Layer] --> B[Application Layer]
-    B --> C[Infrastructure Layer]
-    B --> D[Presentation Layer]
-    
-    B --> E[Repository Interfaces]
-    C --> F[Repository Implementations]
-    
-    style A fill:#f9f,stroke:#333,stroke-width:2px
-    style B fill:#bbf,stroke:#333,stroke-width:2px
-    style C fill:#bfb,stroke:#333,stroke-width:2px
-```
-</details>
+#### 🔧 **Stoocker.Application** (Application Layer)
+- CQRS pattern implementasyonu (MediatR)
+- Business logic
+- Validation (FluentValidation)
+- Services interfaces ve implementasyonları
+- AutoMapper profiles
+- Pipeline behaviors (Validation, Logging)
 
-## 🔧 Installation
+#### 🏛️ **Stoocker.Domain** (Domain Layer)
+- Entity modelleri
+- Domain events
+- Business rules
+- Value objects
 
-### 1. Add to your project
+#### 🔌 **Stoocker.Infrastructure** (Infrastructure Layer)
+- External service integrations
+- Monitoring (OpenTelemetry, Prometheus)
+- Health checks
+- Logging configuration (Serilog)
+- Background job configuration (Hangfire)
+
+#### 💾 **Stoocker.Persistence** (Data Access Layer)
+- Entity Framework Core configuration
+- Repository pattern
+- Unit of Work pattern
+- Database migrations
+- Tenant-aware repositories
+
+## 🛠️ Teknoloji Stack
+
+### Backend
+- **.NET 9**: Framework
+- **ASP.NET Core**: Web API
+- **Entity Framework Core**: ORM
+- **SQL Server**: Database
+- **MediatR**: CQRS implementation
+- **AutoMapper**: Object mapping
+- **FluentValidation**: Validation
+- **Hangfire**: Background jobs
+- **Serilog**: Logging
+
+### Authentication & Authorization
+- **ASP.NET Core Identity**: User management
+- **JWT Bearer**: Token authentication
+- **BCrypt.Net**: Password hashing
+
+### Monitoring & Observability
+- **OpenTelemetry**: Distributed tracing
+- **Prometheus**: Metrics collection
+- **Health Checks**: Application health monitoring
+- **Serilog Sinks**: Multiple logging destinations
+
+### Documentation & Testing
+- **Swagger/OpenAPI**: API documentation
+- **Swashbuckle**: Swagger UI
+
+## 📋 Gereksinimler
+
+- .NET 9 SDK
+- SQL Server (LocalDB veya tam sürüm)
+- Visual Studio 2022 veya JetBrains Rider
+- Git
+
+## ⚡ Kurulum
+
+### 1. Projeyi Klonlayın
 ```bash
-dotnet add package YourPackageName
+git clone <repository-url>
+cd Stoocker
 ```
 
-### 2. Register services
-```csharp
-// Program.cs or Startup.cs
-builder.Services.AddPersistenceServices(builder.Configuration);
+### 2. Bağımlılıkları Yükleyin
+```bash
+dotnet restore
 ```
 
-### 3. Configure your DbContext
-```csharp
-services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
-```
-
-## 💻 Usage Examples
-
-### 📖 Basic Read Operations
-
-```csharp
-public class ProductService
+### 3. Veritabanı Konfigürasyonu
+`appsettings.json` dosyasında connection string'i ayarlayın:
+```json
 {
-    private readonly IUnitOfWork _unitOfWork;
-    
-    public async Task<Product?> GetProductAsync(Guid id)
-    {
-        return await _unitOfWork
-            .GetReadRepository<Product>()
-            .AsNoTracking()
-            .GetByIdAsync(id);
-    }
+  "ConnectionStrings": {
+    "DefaultConnection": "Server=(localdb)\\mssqllocaldb;Database=StoockerDb;Trusted_Connection=true;MultipleActiveResultSets=true"
+  }
 }
 ```
 
-### ✍️ Write Operations
+### 4. Veritabanı Migration'larını Uygulayın
+```bash
+cd Stoocker.Persistence
+dotnet ef database update
+```
+
+### 5. Uygulamayı Çalıştırın
+```bash
+cd Stoocker.API
+dotnet run
+```
+
+Uygulama `https://localhost:7000` adresinde çalışacaktır.
+
+## 📊 API Dokümantasyonu
+
+Uygulama çalıştığında Swagger UI'ya şu adresten erişebilirsiniz:
+- **Swagger UI**: `https://localhost:7000/swagger`
+
+## 🏢 Domain Modelleri
+
+Sistem aşağıdaki ana domain modellerini içerir:
+
+- **Tenant**: Multi-tenant yapı için müşteri bilgileri
+- **ApplicationUser**: Kullanıcı bilgileri
+- **ApplicationRole**: Rol bilgileri
+- **Brand**: Marka bilgileri
+- **Category**: Kategori bilgileri
+- **Product**: Ürün bilgileri
+- **ProductStock**: Ürün stok bilgileri
+- **Customer**: Müşteri bilgileri
+- **Supplier**: Tedarikçi bilgileri
+- **Warehouse**: Depo bilgileri
+- **Unit**: Birim bilgileri
+- **PurchaseInvoice**: Satın alma faturaları
+- **SalesInvoice**: Satış faturaları
+- **StockMovement**: Stok hareketleri
+
+## 🔐 Authentication
+
+Sistem JWT tabanlı authentication kullanır. API endpoint'lerine erişim için:
+
+1. `/api/auth/login` endpoint'ine credentials gönderin
+2. Dönen JWT token'ı `Authorization: Bearer <token>` header'ında kullanın
+
+## 📈 Monitoring
+
+### Health Checks
+- Application health: `/health`
+- Database health check
+- Hangfire health check
+
+### Metrics
+- Prometheus metrics: `/metrics`
+- OpenTelemetry tracing aktif
+
+### Logging
+Serilog ile çoklu sink desteği:
+- Console logging
+- File logging
+- Elasticsearch
+- Seq
+
+## 🔄 Background Jobs
+
+Hangfire ile arka plan işlemleri:
+- Dashboard: `/hangfire`
+- Otomatik job scheduling
+- Recurring jobs
+
+## 🏗️ Geliştirme
+
+### Yeni Feature Ekleme
+
+1. **Domain**: Yeni entity'leri `Stoocker.Domain` projesine ekleyin
+2. **Application**: Business logic'i `Stoocker.Application` projesine ekleyin
+3. **Persistence**: Repository ve configuration'ları ekleyin
+4. **API**: Controller ve endpoint'leri ekleyin
+
+### CQRS Pattern Kullanımı
 
 ```csharp
-public async Task CreateProductAsync(Product product)
+// Command örneği
+public class CreateBrandCommand : IRequest<Result<int>>
 {
-    var writeRepo = _unitOfWork.GetWriteRepository<Product>();
-    await writeRepo.AddAsync(product);
-    await _unitOfWork.SaveChangesAsync();
+    public string Name { get; set; }
+    public string Description { get; set; }
+}
+
+// Query örneği
+public class GetBrandByIdQuery : IRequest<Result<BrandDto>>
+{
+    public int Id { get; set; }
 }
 ```
 
-### 🔍 Using Specifications
+## 🧪 Testing
 
-```csharp
-// Define specification
-public class ActiveProductsSpec : BaseSpecification<Product>
-{
-    public ActiveProductsSpec(decimal minPrice) 
-        : base(p => p.IsActive && p.Price >= minPrice)
-    {
-        AddInclude(p => p.Category);
-        ApplyOrderByDescending(p => p.CreatedDate);
-    }
-}
+Proje test edilebilir mimari için tasarlanmıştır:
+- Repository pattern ile testable data access
+- Dependency injection ile loosely coupled design
+- MediatR handlers için unit testing
 
-// Use specification
-var spec = new ActiveProductsSpec(minPrice: 100);
-var products = await _unitOfWork
-    .GetSpecificationRepository<Product>()
-    .FindAsync(spec);
-```
+## 📝 Katkıda Bulunma
 
-### 💼 Transaction Management
+1. Fork edin
+2. Feature branch oluşturun (`git checkout -b feature/yeni-ozellik`)
+3. Değişikliklerinizi commit edin (`git commit -am 'Yeni özellik eklendi'`)
+4. Branch'i push edin (`git push origin feature/yeni-ozellik`)
+5. Pull Request oluşturun
 
-```csharp
-public async Task TransferProductsAsync(Guid fromCategoryId, Guid toCategoryId)
-{
-    await _unitOfWork.BeginTransactionAsync();
-    
-    try
-    {
-        var products = await GetProductsByCategoryAsync(fromCategoryId);
-        foreach (var product in products)
-        {
-            product.CategoryId = toCategoryId;
-        }
-        
-        await _unitOfWork.SaveChangesAsync();
-        await _unitOfWork.CommitTransactionAsync();
-    }
-    catch
-    {
-        await _unitOfWork.RollbackTransactionAsync();
-        throw;
-    }
-}
-```
+## 📄 Lisans
 
-## 🏗️ Patterns & Principles
+Bu proje MIT lisansı altında lisanslanmıştır.
 
-| Pattern | Description |
-|---------|-------------|
-| **Repository Pattern** | Encapsulates data access logic and provides a more object-oriented view of the persistence layer |
-| **Unit of Work** | Maintains a list of objects affected by a business transaction and coordinates writing out changes |
-| **Specification Pattern** | Encapsulates query logic in reusable classes |
-| **SOLID Principles** | Single Responsibility, Open/Closed, Liskov Substitution, Interface Segregation, Dependency Inversion |
+## 🤝 Destek
 
-## 📋 API Reference
+Sorularınız için:
+- Issue açın
+- Dokümantasyonu kontrol edin
+- Community'ye katılın
 
-<details>
-<summary><b>IReadRepository</b></summary>
+---
 
-```csharp
-public interface IReadRepository<T> : IRepository<T> where T : BaseEntity
-{
-    Task<T?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
-    Task<IEnumerable<T>> GetAllAsync(CancellationToken cancellationToken = default);
-    Task<T?> FirstOrDefaultAsync(Expression<Func<T, bool>> predicate, CancellationToken cancellationToken = default);
-    Task<IEnumerable<T>> FindAsync(Expression<Func<T, bool>> predicate, CancellationToken cancellationToken = default);
-    Task<bool> AnyAsync(Expression<Func<T, bool>> predicate, CancellationToken cancellationToken = default);
-    Task<int> CountAsync(Expression<Func<T, bool>>? predicate = null, CancellationToken cancellationToken = default);
-    IReadRepository<T> AsNoTracking();
-    IReadRepository<T> AsTracking();
-}
-```
-</details>
-
-<details>
-<summary><b>IWriteRepository</b></summary>
-
-```csharp
-public interface IWriteRepository<T> where T : BaseEntity
-{
-    Task<T> AddAsync(T entity, CancellationToken cancellationToken = default);
-    Task AddRangeAsync(IEnumerable<T> entities, CancellationToken cancellationToken = default);
-    void Update(T entity);
-    void UpdateRange(IEnumerable<T> entities);
-    void Remove(T entity);
-    void RemoveRange(IEnumerable<T> entities);
-    Task RemoveByIdAsync(Guid id, CancellationToken cancellationToken = default);
-}
-```
-</details>
-
-## 🤝 Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🙏 Acknowledgments
-
-- Inspired by Clean Architecture principles by Robert C. Martin
-- Built with Entity Framework Core
-- Following Microsoft's .NET design guidelines
-
+**Stoocker** - Modern stok yönetimi için geliştirilmiş, ölçeklenebilir ve sürdürülebilir bir çözüm.
 ---
 
 <p align="center">
