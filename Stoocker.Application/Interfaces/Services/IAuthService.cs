@@ -21,7 +21,7 @@ namespace Stoocker.Application.Interfaces.Services
         Task LogoutAsync(Guid userId);
 
         // Kullanıcı kaydı
-        Task<Result<LoginResponse>> RegisterAsync(string email, string password);
+        Task<Result<LoginResponse>> RegisterAsync(string email, string password, string userName, string firstName, string lastName, string phoneNumber);
         Task<Result<LoginResponse>> RegisterAsync(RegisterRequest request);
 
         // Token işlemleri

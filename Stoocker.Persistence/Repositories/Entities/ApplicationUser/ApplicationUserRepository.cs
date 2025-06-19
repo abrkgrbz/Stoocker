@@ -73,7 +73,7 @@ namespace Stoocker.Persistence.Repositories.Entities
             return _users.Where(u => !u.IsDeleted);
         }
 
-        public IQueryable<ApplicationUser>  (Guid tenantId)
+        public IQueryable<ApplicationUser> QueryByTenant(Guid tenantId)
         {
             return _users.Where(u => u.TenantId == tenantId && !u.IsDeleted);
         }

@@ -14,11 +14,30 @@ namespace Stoocker.Application.DTOs.Auth.Request
         public string Email { get; init; } = string.Empty;
 
         [Required]
+        [StringLength(100, MinimumLength = 2)]
+        public string Username { get; init; } = string.Empty;
+
+        [Required]
         [DataType(DataType.Password)]
         public string Password { get; init; } = string.Empty;
 
         [Required]
         [DataType(DataType.Password)]
-        public string ConfirmPassword { get; init; } = string.Empty;
+        [Compare(nameof(Password), ErrorMessage = "The password and confirmation password do not match.")]
+        public string ConfirmPassword { get; init; }= string.Empty;
+
+        [Required]
+        [StringLength(100, MinimumLength = 2)]
+        public string FirstName { get; init; }
+
+        [Required]
+        [StringLength(100, MinimumLength = 2)]
+        public string Lastname { get; init; }
+
+        [Required]
+        [Phone]
+        public string PhoneNumber { get; init; }
+
+        public Guid? TenantId { get; init; } = null;
     }
 }

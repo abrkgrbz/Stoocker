@@ -1,14 +1,16 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Stoocker.Application.Features.Commands.Brand.Create;
 using Stoocker.Application.Features.Queries.Brand.GetBrand;
 using Stoocker.Application.Features.Queries.Brand.GetBrands;
 
-// For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-
+ 
+ 
 namespace Stoocker.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class BrandController : BaseApiController
     {
         [HttpGet("GetBrand")]

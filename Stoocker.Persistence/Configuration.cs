@@ -43,7 +43,9 @@ namespace Stoocker.Persistence
             {
                 Console.Write(e);
             }
-            return configurationManager.GetSection("JwtSettings").Get<JwtSettings>();
+
+            
+            return configurationManager.GetSection("Jwt").Get<JwtSettings>();
         }
     }
 }

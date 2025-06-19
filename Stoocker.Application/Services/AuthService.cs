@@ -6,6 +6,7 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
@@ -71,12 +72,12 @@ namespace Stoocker.Application.Services
 
                 // Update refresh token
                 user.Data.RefreshToken = refreshToken;
-                user.Data.RefreshTokenExpiry = DateTime.UtcNow.AddDays(7);
+                user.Data.RefreshTokenExpiry = DateTime.UtcNow.AddDays(7); 
                 _unitOfWork.Users.Update(user.Data);
                 await _unitOfWork.SaveChangesAsync();
 
                 var expiresAt = DateTime.UtcNow.AddHours(1); // Token expires in 1 hour
-
+                _unitOfWork.SetCurrentTenant(user.Data.TenantId);
                 var result = new LoginResponse()
                 {
                     AccessToken = token,
@@ -130,27 +131,86 @@ namespace Stoocker.Application.Services
             }
         }
 
-        public Task<Result<LoginResponse>> RegisterAsync(string email, string password)
+        public async Task<Result<LoginResponse>> RegisterAsync(string email, string password,string userName,string firstName,string lastName,string phoneNumber)
         {
-            throw new NotImplementedException();
+            return await RegisterAsync(new RegisterRequest { Email = email, Password = password, ConfirmPassword = password,FirstName = firstName,Lastname = lastName,PhoneNumber = phoneNumber,Username = userName});
         }
 
-        public Task<Result<LoginResponse>> RegisterAsync(RegisterRequest request)
+        public async Task<Result<LoginResponse>> RegisterAsync(RegisterRequest request)
         {
-            throw new NotImplementedException();
+            try
+            {
+                if (request.Password != request.ConfirmPassword)
+                {
+                    return Result<LoginResponse>.Failure("Passwords do not match");
+                }
+
+                // Tenant kontrolü
+                var currentTenant = await _unitOfWork.Tenants.FirstOrDefaultAsync(x=>x.Id== request.TenantId);
+                if (currentTenant == null || !currentTenant.IsActive)
+                {
+                    return  Result<LoginResponse>.Failure("Invalid tenant");
+                }
+                 
+                var existingUser = await _unitOfWork.Users.GetByEmailAsync(request.Email, currentTenant.Id);
+                if (existingUser != null)
+                {
+                    return Result<LoginResponse>.Failure("User already exists in this organization"); 
+                }
+
+                var user = new ApplicationUser()
+                {
+                    Id = Guid.NewGuid(),
+                    TenantId = currentTenant.Id, // Tenant ID ekleme
+                    Email = request.Email,
+                    PasswordHash = HashPassword(request.Password),
+                    EmailConfirmed = false,
+                    TwoFactorEnabled = false,
+                    CreatedAt = DateTime.UtcNow
+                };
+
+                await _unitOfWork.Users.AddAsync(user);
+                await SendEmailVerificationAsync(user.Id);
+                await _unitOfWork.SaveChangesAsync();
+                var loginResponse = new LoginResponse()
+                {
+                    User = new LoginResponse.UserInfo()
+                    {
+                        Email = user.Email,
+                        FullName = user.FullName,
+                        TenantName = user.Tenant.Name,
+                        Id = user.Id
+                    }
+                };
+
+                return Result<LoginResponse>.Success(loginResponse);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error during registration for email: {Email}", request.Email);
+                return Result<LoginResponse>.Failure("An error occurred during registration");
+            }
         }
 
         public async Task<string> GenerateTokenAsync(ApplicationUser user)
         {
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:SecretKey"]));
             var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
-            var claims = new[]
+            var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
                 new Claim(ClaimTypes.Email, user.Email),
-                new Claim("jti", Guid.NewGuid().ToString())
+                new Claim(ClaimTypes.Name, user.UserName),
+                new Claim("TenantId",user.TenantId.ToString()),
+                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
             };
+
+            var roles = await _unitOfWork.UserRoles.GetByUserIdWithRoleAsync(user.Id);
+             foreach (var role in roles)
+            {
+                claims.Add(new Claim(ClaimTypes.Role, role.Role.Name));
+            }
 
             var token = new JwtSecurityToken(
                 issuer: _configuration["Jwt:Issuer"],

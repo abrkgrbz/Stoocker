@@ -57,51 +57,7 @@ namespace Stoocker.Persistence
                          b => b.MigrationsAssembly("Stoocker.Persistence"))
              );
 
-            services.AddIdentityCore<ApplicationUser>(options =>
-                 {
-                     // Password settings
-                     options.Password.RequireDigit = true;
-                     options.Password.RequireLowercase = true;
-                     options.Password.RequireNonAlphanumeric = false;
-                     options.Password.RequireUppercase = true;
-                     options.Password.RequiredLength = 6;
-                     options.Password.RequiredUniqueChars = 1;
-
-                     // Lockout settings
-                     options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
-                     options.Lockout.MaxFailedAccessAttempts = 5;
-                     options.Lockout.AllowedForNewUsers = true;
-
-                     // User settings
-                     options.User.AllowedUserNameCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+";
-                     options.User.RequireUniqueEmail = true;
-
-                     // Email confirmation
-                     options.SignIn.RequireConfirmedEmail = false; // Development için false
-                     options.SignIn.RequireConfirmedAccount = false;
-                 })
-                 .AddRoles<ApplicationRole>()
-                 .AddEntityFrameworkStores<ApplicationDbContext>();
-
-            // JWT Authentication
-            services.AddAuthentication(options =>
-                 {
-                     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-                     options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-                 })
-                 .AddJwtBearer(options =>
-                 {
-                     options.TokenValidationParameters = new TokenValidationParameters
-                     {
-                         ValidateIssuerSigningKey = true,
-                         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration.GetJwtSettings().SecretKey)),
-                         ValidateIssuer = true,
-                         ValidIssuer = Configuration.GetJwtSettings().Issuer,
-                         ValidateAudience = true,
-                         ValidAudience = Configuration.GetJwtSettings().Audience,
-                         ClockSkew = TimeSpan.Zero
-                     };
-                 });
+        
             services.AddScoped<IUnitOfWork, UnitOfWork>();
 
             // Generic Repositories

@@ -18,7 +18,7 @@ namespace Stoocker.Application
         public static void AddApplicationServices(this IServiceCollection services)
         {
             var assembly = Assembly.GetExecutingAssembly();
-
+             
             // MediatR
             services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(assembly));
 
@@ -34,11 +34,9 @@ namespace Stoocker.Application
 
             // Services
             services.AddScoped<IUserService, UserService>();
-            services.AddScoped<ICurrentUserService, CurrentUserService>();
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<ITenantService, TenantService>();
-
-            services.AddHttpContextAccessor();
+            services.AddScoped<IEmailService, EmailService>();
 
         }
     }

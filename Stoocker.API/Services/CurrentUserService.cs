@@ -1,13 +1,7 @@
-﻿using Microsoft.AspNetCore.Http;
-using Stoocker.Application.Interfaces.Services;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using Stoocker.Application.Interfaces.Services;
 using System.Security.Claims;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace Stoocker.Application.Services
+namespace Stoocker.API.Services
 {
     public class CurrentUserService : ICurrentUserService
     {
