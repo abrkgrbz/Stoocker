@@ -31,9 +31,9 @@ Stoocker/
 ├── Stoocker.API/                          # Presentation Layer
 ├── Stoocker.Application/                  # Application Layer
 ├── Stoocker.Domain/                       # Domain Layer
-├── Stoocker.Infrastructure/               # Infrastructure Layer
-├── Stoocker.Infrastructure.BackgroundJobs/# Background Jobs
+├── Stoocker.Infrastructure/               # Infrastructure Layer 
 └── Stoocker.Persistence/                  # Data Access Layer
+└── Stoocker.Test/                         # Unit Test Layer
 ```
 
 ### Katman Detayları
