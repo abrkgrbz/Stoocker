@@ -18,10 +18,12 @@ using Stoocker.Application.Interfaces.Repositories.Entities.ApplicationUserRole;
 using Stoocker.Application.Interfaces.Repositories.Entities.Brand;
 using Stoocker.Application.Interfaces.Repositories.Entities.Category;
 using Stoocker.Application.Interfaces.Repositories.Entities.Customer;
+using Stoocker.Application.Interfaces.Repositories.Entities.Permission;
 using Stoocker.Application.Interfaces.Repositories.Entities.Product;
 using Stoocker.Application.Interfaces.Repositories.Entities.ProductStock;
 using Stoocker.Application.Interfaces.Repositories.Entities.PurchaseInvoice;
 using Stoocker.Application.Interfaces.Repositories.Entities.PurchaseInvoiceDetail;
+using Stoocker.Application.Interfaces.Repositories.Entities.RolePermission;
 using Stoocker.Application.Interfaces.Repositories.Entities.SalesInvoice;
 using Stoocker.Application.Interfaces.Repositories.Entities.StockMovement;
 using Stoocker.Application.Interfaces.Repositories.Entities.Supplier;
@@ -33,10 +35,12 @@ using Stoocker.Persistence.Repositories.Entities;
 using Stoocker.Persistence.Repositories.Entities.Brand;
 using Stoocker.Persistence.Repositories.Entities.Category;
 using Stoocker.Persistence.Repositories.Entities.Customer;
+using Stoocker.Persistence.Repositories.Entities.Permission;
 using Stoocker.Persistence.Repositories.Entities.Product;
 using Stoocker.Persistence.Repositories.Entities.ProductStock;
 using Stoocker.Persistence.Repositories.Entities.PurchaseInvoice;
 using Stoocker.Persistence.Repositories.Entities.PurchaseInvoiceDetail;
+using Stoocker.Persistence.Repositories.Entities.RolePermission;
 using Stoocker.Persistence.Repositories.Entities.SalesInvoice;
 using Stoocker.Persistence.Repositories.Entities.StockMovement;
 using Stoocker.Persistence.Repositories.Entities.Supplier;
@@ -109,6 +113,12 @@ namespace Stoocker.Persistence
 
             services.AddScoped<IWarehouseReadRepository, WarehouseReadRepository>();
             services.AddScoped<IWarehouseWriteRepository, WarehouseWriteRepository>();
+
+            services.AddScoped<IPermissionReadRepository, PermissionReadRepository>();
+            services.AddScoped<IPermissionWriteRepository, PermissionWriteRepository>();
+
+            services.AddScoped<IRolePermissionReadRepository, RolePermissionReadRepository>();
+            services.AddScoped<IRolePermissionWriteRepository, RolePermissionWriteRepository>();
         }
     }
 }

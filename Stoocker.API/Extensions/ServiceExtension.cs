@@ -5,6 +5,9 @@ using Microsoft.OpenApi.Models;
 using Stoocker.Domain.Entities;
 using Stoocker.Persistence.Contexts;
 using System.Text;
+using Microsoft.AspNetCore.Authorization;
+using Stoocker.API.Handlers;
+using Stoocker.API.Providers;
 
 namespace Stoocker.API.Extensions
 {
@@ -136,5 +139,13 @@ namespace Stoocker.API.Extensions
                  });
         }
 
+        public static void AddPermissionAuthorizationHandlerExtension(this IServiceCollection services)
+        {
+            services.AddTransient<IAuthorizationHandler, PermissionAuthorizationHandler>();
+        }
+        public static void AddPermissionPolicyProviderExtension(this IServiceCollection services)
+        {
+            services.AddTransient<IAuthorizationPolicyProvider, PermissionPolicyProvider>();
+        }
     }
 }

@@ -9,45 +9,40 @@ using System.Threading.Tasks;
 using Stoocker.Infrastructure.BackgroundJobs;
 using Stoocker.Infrastructure.Logging;
 using Stoocker.Infrastructure.Monitoring;
+using Stoocker.Infrastructure.Caching;
 
 namespace Stoocker.Infrastructure
 {
     public static class ServiceRegistration
     {
         public static IServiceCollection AddInfrastructureServices(this IServiceCollection services, IConfiguration configuration)
-        {
-            // Add logging services
+        { 
             services.AddLoggingServices();
-
-            // Add Hangfire
+             
             services.AddHangfireConfiguration(configuration);
-
-            // Add monitoring and health checks
+             
             services.AddMonitoringConfiguration(configuration);
+             
+            services.AddCachingServices(configuration);
 
             return services;
         }
 
         public static WebApplicationBuilder AddInfrastructure(this WebApplicationBuilder builder)
-        {
-            // Add Serilog
+        { 
             builder.AddSerilogConfiguration();
-
-            // Add infrastructure services
+             
             builder.Services.AddInfrastructureServices(builder.Configuration);
 
             return builder;
         }
 
         public static IApplicationBuilder UseInfrastructure(this IApplicationBuilder app, IConfiguration configuration)
-        {
-            // Use performance logging middleware
+        { 
             app.UsePerformanceLogging();
-
-            // Use Hangfire
+             
             app.UseHangfireConfiguration(configuration);
-
-            // Use monitoring
+             
             app.UseMonitoringConfiguration();
 
             return app;

@@ -1,11 +1,12 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Stoocker.API.Attributes;
 using Stoocker.Application.Features.Commands.Brand.Create;
 using Stoocker.Application.Features.Queries.Brand.GetBrand;
 using Stoocker.Application.Features.Queries.Brand.GetBrands;
+using Stoocker.Domain.Constants;
 
- 
- 
+
 namespace Stoocker.API.Controllers
 {
     [Route("api/[controller]")]
@@ -14,6 +15,7 @@ namespace Stoocker.API.Controllers
     public class BrandController : BaseApiController
     {
         [HttpGet("GetBrand")]
+        [RequirePermission(PermissionConstants.BrandView)]
         public async Task<IActionResult> GetBrand([FromQuery] GetBrandQuery query)
         {
             var result = await Mediator.Send(query);
@@ -21,6 +23,7 @@ namespace Stoocker.API.Controllers
         }
 
         [HttpGet("GetBrands")]
+        [RequirePermission(PermissionConstants.BrandView)]
         public async Task<IActionResult> GetBrands([FromQuery] GetBrandsQuery query)
         {
             var result = await Mediator.Send(query);
@@ -28,6 +31,7 @@ namespace Stoocker.API.Controllers
         }
 
         [HttpPost("CreateBrand")]
+        [RequirePermission(PermissionConstants.BrandCreate)]
         public async Task<IActionResult> CreateBrand([FromBody] CreateBrandCommand command)
         {
             var result = await Mediator.Send(command); 

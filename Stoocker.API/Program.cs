@@ -14,6 +14,7 @@ using Stoocker.Persistence.Contexts;
 using Stoocker.Persistence.Seeds;
 using System.IdentityModel.Tokens.Jwt;
 using System.Text;
+using Microsoft.AspNetCore.Authorization;
 using Stoocker.API.Extensions;
 
 Log.Logger = new LoggerConfiguration()
@@ -26,7 +27,7 @@ try
 
     builder.Services.AddControllers();
     builder.Services.AddEndpointsApiExplorer();
-
+    builder.Services.AddMemoryCache();
     builder.Services.AddHttpContextAccessor();
 
     builder.Configuration
@@ -42,6 +43,8 @@ try
     builder.Services.AddApplicationServices();
     builder.Services.AddIdentityCoreExtension();
     builder.Services.AddAuthenticationExtension(builder.Configuration);
+    builder.Services.AddPermissionAuthorizationHandlerExtension();
+    builder.Services.AddPermissionPolicyProviderExtension();
     builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
     builder.Services.AddCors(options =>
     {
@@ -53,7 +56,19 @@ try
                     .AllowAnyHeader();
             });
     });
-    builder.Services.AddAuthorization();
+    builder.Services.AddAuthorization(options =>
+    {
+        options.DefaultPolicy = new AuthorizationPolicyBuilder()
+            .RequireAuthenticatedUser()
+            .Build();
+        options.AddPolicy("AdminOnly",policy=>
+            policy.RequireRole("Admin","SuperAdmin"));
+
+        options.AddPolicy("WarehouseManager", policy =>
+            policy.RequireAssertion(context =>
+                context.User.IsInRole("WarehouseManager") ||
+                context.User.IsInRole("Admin")));
+    });
 
     var app = builder.Build();
      
@@ -71,7 +86,7 @@ try
 
     using (var scope = app.Services.CreateScope())
     {
-        await DatabaseInitializer.InitializeAsync(scope.ServiceProvider);
+        await DatabaseInitializer.InitializeAsync(scope.ServiceProvider); 
     }
 
     Log.Information("Stoocker API started successfully");

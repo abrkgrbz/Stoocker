@@ -15,4 +15,6 @@ namespace Stoocker.Domain.Enums
         Credit = 5,
         Other = 6
     }
+
+     
 }

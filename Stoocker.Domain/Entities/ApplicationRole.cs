@@ -20,5 +20,6 @@ namespace Stoocker.Domain.Entities
         // Navigation Properties
         public virtual Tenant Tenant { get; set; } = null!;
         public virtual ICollection<ApplicationUserRole> UserRoles { get; set; } = new List<ApplicationUserRole>();
+        public virtual ICollection<RolePermission> RolePermissions { get; set; } = new List<RolePermission>();
     }
 }

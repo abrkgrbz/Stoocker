@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using FluentValidation;
 using MediatR;
 using Stoocker.Application.Behaviors;
+using Stoocker.Application.Interfaces.Services.Permission;
 
 namespace Stoocker.Application
 {
@@ -31,12 +32,16 @@ namespace Stoocker.Application
             // MediatR Pipeline Behaviors
             services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
             services.AddTransient(typeof(IPipelineBehavior<,>), typeof(LoggingBehavior<,>));
+            services.AddTransient(typeof(IPipelineBehavior<,>), typeof(PermissionValidationBehavior<,>));
+            services.AddTransient(typeof(IPipelineBehavior<,>), typeof(CacheBehavior<,>)); 
+            services.AddTransient(typeof(IPipelineBehavior<,>), typeof(CacheInvalidationBehavior<,>));  
 
             // Services
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<ITenantService, TenantService>();
             services.AddScoped<IEmailService, EmailService>();
+            services.AddScoped<IPermissionService, PermissionService>();
 
         }
     }

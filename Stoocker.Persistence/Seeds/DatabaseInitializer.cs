@@ -1,14 +1,11 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Stoocker.Domain.Constants;
 using Stoocker.Domain.Entities;
 using Stoocker.Domain.Enums;
 using Stoocker.Persistence.Contexts;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
+using System.Reflection;
 
 namespace Stoocker.Persistence.Seeds
 {
@@ -26,7 +23,10 @@ namespace Stoocker.Persistence.Seeds
                 // Database migration
                 await context.Database.MigrateAsync();
 
-                // Seed data
+                // Seed permissions first
+                await SeedPermissionsAsync(context);
+
+                // Seed data with permissions
                 await SeedDataAsync(context, userManager, roleManager);
             }
             catch (Exception ex)
@@ -35,6 +35,38 @@ namespace Stoocker.Persistence.Seeds
                 Console.WriteLine($"Database initialization error: {ex.Message}");
                 throw;
             }
+        }
+
+        private static async Task SeedPermissionsAsync(ApplicationDbContext context)
+        {
+            if (await context.Permissions.AnyAsync())
+                return;
+
+            var permissionType = typeof(PermissionConstants);
+            var fields = permissionType.GetFields(BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy)
+                .Where(fi => fi.IsLiteral && !fi.IsInitOnly && fi.FieldType == typeof(string));
+
+            var permissions = new List<Permission>();
+
+            foreach (var field in fields)
+            {
+                var permissionName = field.GetValue(null)?.ToString();
+                if (string.IsNullOrEmpty(permissionName))
+                    continue;
+
+                permissions.Add(new Permission
+                {
+                    Name = permissionName,
+                    DisplayName = GetPermissionDisplayName(permissionName),
+                    Category = GetPermissionCategory(permissionName),
+                    Description = $"Permission for {GetPermissionDisplayName(permissionName)}",
+                    IsActive = true,
+                    SortOrder = permissions.Count
+                });
+            }
+
+            context.Permissions.AddRange(permissions);
+            await context.SaveChangesAsync();
         }
 
         private static async Task SeedDataAsync(
@@ -66,23 +98,8 @@ namespace Stoocker.Persistence.Seeds
                 context.Tenants.Add(demoTenant);
                 await context.SaveChangesAsync();
 
-                // 2. Roller oluştur
-                string[] roles = { "SuperAdmin", "Admin", "Manager", "User" };
-                foreach (string roleName in roles)
-                {
-                    if (!await roleManager.RoleExistsAsync(roleName))
-                    {
-                        var role = new ApplicationRole
-                        {
-                            Name = roleName,
-                            TenantId = demoTenant.Id,
-                            Description = $"{roleName} role for demo tenant",
-                            IsSystemRole = roleName == "SuperAdmin",
-                            IsActive = true
-                        };
-                        await roleManager.CreateAsync(role);
-                    }
-                }
+                // 2. Roller oluştur ve permission ata
+                await CreateRolesWithPermissionsAsync(context, roleManager, demoTenant.Id);
 
                 // 3. Demo admin kullanıcı
                 var adminEmail = "admin@demo.com";
@@ -275,6 +292,248 @@ namespace Stoocker.Persistence.Seeds
 
                 await context.SaveChangesAsync();
             }
+        }
+
+        private static async Task CreateRolesWithPermissionsAsync(
+            ApplicationDbContext context,
+            RoleManager<ApplicationRole> roleManager,
+            Guid tenantId)
+        {
+            Console.WriteLine("Starting role and permission assignment...");
+
+            // SuperAdmin rolü ve yetkileri
+            var superAdminRole = await CreateRoleAsync(roleManager, "SuperAdmin", tenantId, "Süper Yönetici", true);
+            if (superAdminRole != null)
+            {
+                Console.WriteLine($"SuperAdmin role created/found with ID: {superAdminRole.Id}");
+                // SuperAdmin tüm yetkilere sahip
+                var allPermissions = await context.Permissions.ToListAsync();
+                Console.WriteLine($"Found {allPermissions.Count} total permissions");
+                await AssignPermissionsToRoleAsync(context, superAdminRole.Id, allPermissions.Select(p => p.Id).ToArray());
+            }
+
+            // Admin rolü ve yetkileri
+            var adminRole = await CreateRoleAsync(roleManager, "Admin", tenantId, "Yönetici", true);
+            if (adminRole != null)
+            {
+                Console.WriteLine($"Admin role created/found with ID: {adminRole.Id}");
+                var adminPermissions = new[]
+                {
+                    PermissionConstants.ProductView,
+                    PermissionConstants.ProductCreate,
+                    PermissionConstants.ProductUpdate,
+                    PermissionConstants.ProductDelete,
+                    PermissionConstants.ProductPriceUpdate,
+                    PermissionConstants.ProductExport,
+                    PermissionConstants.ProductImport,
+                    PermissionConstants.CategoryView,
+                    PermissionConstants.CategoryCreate,
+                    PermissionConstants.CategoryUpdate,
+                    PermissionConstants.CategoryDelete,
+                    PermissionConstants.BrandView,
+                    PermissionConstants.BrandCreate,
+                    PermissionConstants.BrandUpdate,
+                    PermissionConstants.BrandDelete,
+                    PermissionConstants.CustomerView,
+                    PermissionConstants.CustomerCreate,
+                    PermissionConstants.CustomerUpdate,
+                    PermissionConstants.CustomerDelete,
+                    PermissionConstants.SupplierView,
+                    PermissionConstants.SupplierCreate,
+                    PermissionConstants.SupplierUpdate,
+                    PermissionConstants.SupplierDelete,
+                    PermissionConstants.SalesInvoiceView,
+                    PermissionConstants.SalesInvoiceCreate,
+                    PermissionConstants.SalesInvoiceUpdate,
+                    PermissionConstants.SalesInvoiceApprove,
+                    PermissionConstants.PurchaseInvoiceView,
+                    PermissionConstants.PurchaseInvoiceCreate,
+                    PermissionConstants.PurchaseInvoiceUpdate,
+                    PermissionConstants.StockMovementView,
+                    PermissionConstants.StockMovementCreate,
+                    PermissionConstants.WarehouseView,
+                    PermissionConstants.WarehouseCreate,
+                    PermissionConstants.WarehouseUpdate,
+                    PermissionConstants.ReportSalesView,
+                    PermissionConstants.ReportStockView,
+                    PermissionConstants.UserView,
+                    PermissionConstants.UserCreate,
+                    PermissionConstants.UserUpdate,
+                    PermissionConstants.RoleView,
+                    PermissionConstants.SettingsView,
+                    PermissionConstants.SettingsUpdate
+                };
+                await AssignPermissionsByNameAsync(context, adminRole.Id, adminPermissions);
+            }
+
+            // Manager rolü ve yetkileri
+            var managerRole = await CreateRoleAsync(roleManager, "Manager", tenantId, "Müdür", false);
+            if (managerRole != null)
+            {
+                Console.WriteLine($"Manager role created/found with ID: {managerRole.Id}");
+                var managerPermissions = new[]
+                {
+                    PermissionConstants.ProductView,
+                    PermissionConstants.ProductCreate,
+                    PermissionConstants.ProductUpdate,
+                    PermissionConstants.ProductPriceUpdate,
+                    PermissionConstants.CategoryView,
+                    PermissionConstants.CustomerView,
+                    PermissionConstants.CustomerCreate,
+                    PermissionConstants.CustomerUpdate,
+                    PermissionConstants.SupplierView,
+                    PermissionConstants.SalesInvoiceView,
+                    PermissionConstants.SalesInvoiceCreate,
+                    PermissionConstants.SalesInvoiceUpdate,
+                    PermissionConstants.PurchaseInvoiceView,
+                    PermissionConstants.StockMovementView,
+                    PermissionConstants.ReportSalesView,
+                    PermissionConstants.ReportStockView
+                };
+                await AssignPermissionsByNameAsync(context, managerRole.Id, managerPermissions);
+            }
+
+            // User rolü ve yetkileri
+            var userRole = await CreateRoleAsync(roleManager, "User", tenantId, "Kullanıcı", false);
+            if (userRole != null)
+            {
+                Console.WriteLine($"User role created/found with ID: {userRole.Id}");
+                var userPermissions = new[]
+                {
+                    PermissionConstants.ProductView,
+                    PermissionConstants.CategoryView,
+                    PermissionConstants.CustomerView,
+                    PermissionConstants.SalesInvoiceView,
+                    PermissionConstants.SalesInvoiceCreate,
+                    PermissionConstants.ProductStockView
+                };
+                await AssignPermissionsByNameAsync(context, userRole.Id, userPermissions);
+            }
+
+            // Final check
+            var rolePermissionCount = await context.RolePermissions.CountAsync();
+            Console.WriteLine($"Total RolePermissions created: {rolePermissionCount}");
+        }
+
+        private static async Task<ApplicationRole?> CreateRoleAsync(
+            RoleManager<ApplicationRole> roleManager,
+            string roleName,
+            Guid tenantId,
+            string description,
+            bool isSystemRole)
+        {
+            var existingRole = await roleManager.FindByNameAsync(roleName);
+            if (existingRole != null)
+            {
+                return existingRole;
+            }
+
+            var role = new ApplicationRole
+            {
+                Id = Guid.NewGuid(),
+                Name = roleName,
+                NormalizedName = roleName.ToUpper(),
+                TenantId = tenantId,
+                Description = description,
+                IsSystemRole = isSystemRole,
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            var result = await roleManager.CreateAsync(role);
+            if (result.Succeeded)
+            {
+                return role;
+            }
+            else
+            {
+                var errors = string.Join(", ", result.Errors.Select(e => e.Description));
+                throw new Exception($"Role creation failed: {errors}");
+            }
+        }
+
+        private static async Task AssignPermissionsToRoleAsync(
+            ApplicationDbContext context,
+            Guid roleId,
+            Guid[] permissionIds)
+        {
+            foreach (var permissionId in permissionIds)
+            {
+                var rolePermission = new RolePermission
+                {
+                    RoleId = roleId,
+                    PermissionId = permissionId,
+                    IsGranted = true,
+                    GrantedAt = DateTime.UtcNow
+                };
+                context.RolePermissions.Add(rolePermission);
+            }
+            await context.SaveChangesAsync();
+        }
+
+        private static async Task AssignPermissionsByNameAsync(
+            ApplicationDbContext context,
+            Guid roleId,
+            string[] permissionNames)
+        {
+            var permissions = await context.Permissions
+                .Where(p => permissionNames.Contains(p.Name))
+                .ToListAsync();
+
+            if (!permissions.Any())
+            {
+                Console.WriteLine($"Warning: No permissions found for names: {string.Join(", ", permissionNames)}");
+                return;
+            }
+
+            foreach (var permission in permissions)
+            {
+                var existingRolePermission = await context.RolePermissions
+                    .FirstOrDefaultAsync(rp => rp.RoleId == roleId && rp.PermissionId == permission.Id);
+
+                if (existingRolePermission == null)
+                {
+                    var rolePermission = new RolePermission
+                    {
+                        Id = Guid.NewGuid(),
+                        RoleId = roleId,
+                        PermissionId = permission.Id,
+                        IsGranted = true,
+                        GrantedAt = DateTime.UtcNow,
+                        CreatedAt = DateTime.UtcNow
+                    };
+                    context.RolePermissions.Add(rolePermission);
+                }
+            }
+
+            try
+            {
+                await context.SaveChangesAsync();
+                Console.WriteLine($"Successfully assigned {permissions.Count} permissions to role {roleId}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error assigning permissions: {ex.Message}");
+                throw;
+            }
+        }
+
+        private static string GetPermissionCategory(string permissionName)
+        {
+            var parts = permissionName.Split('.');
+            return parts.Length > 0 ?
+                char.ToUpper(parts[0][0]) + parts[0].Substring(1).ToLower() :
+                "General";
+        }
+
+        private static string GetPermissionDisplayName(string permissionName)
+        {
+            return permissionName
+                .Replace(".", " ")
+                .Replace("_", " ")
+                .Split(' ')
+                .Select(word => char.ToUpper(word[0]) + word.Substring(1).ToLower())
+                .Aggregate((current, next) => current + " " + next);
         }
     }
 }

@@ -38,14 +38,21 @@ namespace Stoocker.Infrastructure.Monitoring
                     "cpu",
                     tags: new[] { "cpu", "processor" });
 
+            // Redis health check ekle
+            var redisConnection = configuration.GetConnectionString("RedisConnection");
+            if (!string.IsNullOrEmpty(redisConnection))
+            {
+                services.AddHealthChecks()
+                    .AddRedis(redisConnection, name: "redis", tags: new[] { "cache", "redis" });
+            }
+
             // Add health check UI
             services.AddHealthChecksUI(options =>
             {
-                options.SetEvaluationTimeInSeconds(30); // Check every 30 seconds
+                options.SetEvaluationTimeInSeconds(30);
                 options.MaximumHistoryEntriesPerEndpoint(50);
-                options.AddHealthCheckEndpoint("Stoocker Health", "/health");
-            })
-            .AddInMemoryStorage();
+                options.AddHealthCheckEndpoint("Stoocker API Health", "/health");
+            }).AddInMemoryStorage();
 
             // Add OpenTelemetry
             services.AddOpenTelemetry()
