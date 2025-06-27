@@ -10,5 +10,6 @@ namespace Stoocker.Application.Interfaces.Services
     {
         Task SendEmailVerificationAsync(string email, string verificationCode);
         Task SendPasswordResetEmailAsync(string email, string resetCode);
+        Task SendWelcomeEmailAsync(string email, string fullName,string tempPassword,CancellationToken cancellationToken);
     }
 }

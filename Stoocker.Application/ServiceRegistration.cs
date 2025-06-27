@@ -39,9 +39,9 @@ namespace Stoocker.Application
             // Services
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IAuthService, AuthService>();
-            services.AddScoped<ITenantService, TenantService>();
-            services.AddScoped<IEmailService, EmailService>();
-            services.AddScoped<IPermissionService, PermissionService>();
+            services.AddScoped<ITenantService, TenantService>(); 
+            services.AddScoped<IPermissionService, PermissionService>(); 
+            services.AddScoped<ISuperAdminService, SuperAdminService>();
 
         }
     }

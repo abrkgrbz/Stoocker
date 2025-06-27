@@ -10,6 +10,8 @@ using Stoocker.Infrastructure.BackgroundJobs;
 using Stoocker.Infrastructure.Logging;
 using Stoocker.Infrastructure.Monitoring;
 using Stoocker.Infrastructure.Caching;
+using Stoocker.Infrastructure.Monitoring.Stoocker.Infrastructure.Monitoring;
+using Stoocker.Infrastructure.Services;
 
 namespace Stoocker.Infrastructure
 {
@@ -25,6 +27,7 @@ namespace Stoocker.Infrastructure
              
             services.AddCachingServices(configuration);
 
+            services.AddEmailServices(configuration);
             return services;
         }
 
@@ -43,7 +46,7 @@ namespace Stoocker.Infrastructure
              
             app.UseHangfireConfiguration(configuration);
              
-            app.UseMonitoringConfiguration();
+            app.UseMonitoringConfiguration(configuration);
 
             return app;
         }

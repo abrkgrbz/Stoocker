@@ -1,0 +1,40 @@
+global:
+  resolve_timeout: 5m
+  smtp_from: 'alerts@stoocker.com'
+  smtp_smarthost: 'smtp.gmail.com:587'
+  smtp_auth_username: 'your-email@gmail.com'
+  smtp_auth_password: 'your-app-password'
+  smtp_require_tls: true
+
+route:
+  group_by: ['alertname', 'cluster', 'service']
+  group_wait: 10s
+  group_interval: 10s
+  repeat_interval: 12h
+  receiver: 'email-notifications'
+  
+  routes:
+    - match:
+        severity: critical
+      receiver: 'critical-email-notifications'
+      continue: true
+
+receivers:
+  - name: 'email-notifications'
+    email_configs:
+      - to: 'admin@stoocker.com'
+        headers:
+          Subject: 'Stoocker Alert: {{ .GroupLabels.alertname }}'
+        
+  - name: 'critical-email-notifications'
+    email_configs:
+      - to: 'admin@stoocker.com,oncall@stoocker.com'
+        headers:
+          Subject: 'CRITICAL - Stoocker Alert: {{ .GroupLabels.alertname }}'
+
+inhibit_rules:
+  - source_match:
+      severity: 'critical'
+    target_match:
+      severity: 'warning'
+    equal: ['alertname', 'dev', 'instance']

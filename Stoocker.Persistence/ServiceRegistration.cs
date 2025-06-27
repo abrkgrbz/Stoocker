@@ -26,6 +26,7 @@ using Stoocker.Application.Interfaces.Repositories.Entities.PurchaseInvoiceDetai
 using Stoocker.Application.Interfaces.Repositories.Entities.RolePermission;
 using Stoocker.Application.Interfaces.Repositories.Entities.SalesInvoice;
 using Stoocker.Application.Interfaces.Repositories.Entities.StockMovement;
+using Stoocker.Application.Interfaces.Repositories.Entities.SuperAdmin;
 using Stoocker.Application.Interfaces.Repositories.Entities.Supplier;
 using Stoocker.Application.Interfaces.Repositories.Entities.Tenant;
 using Stoocker.Application.Interfaces.Repositories.Entities.Unit;
@@ -43,6 +44,7 @@ using Stoocker.Persistence.Repositories.Entities.PurchaseInvoiceDetail;
 using Stoocker.Persistence.Repositories.Entities.RolePermission;
 using Stoocker.Persistence.Repositories.Entities.SalesInvoice;
 using Stoocker.Persistence.Repositories.Entities.StockMovement;
+using Stoocker.Persistence.Repositories.Entities.SuperAdmin;
 using Stoocker.Persistence.Repositories.Entities.Supplier;
 using Stoocker.Persistence.Repositories.Entities.Tenant.Specifications;
 using Stoocker.Persistence.Repositories.Entities.Unit;
@@ -119,6 +121,9 @@ namespace Stoocker.Persistence
 
             services.AddScoped<IRolePermissionReadRepository, RolePermissionReadRepository>();
             services.AddScoped<IRolePermissionWriteRepository, RolePermissionWriteRepository>();
+
+            services.AddScoped<ISuperAdminReadRepository, SuperAdminReadRepository>();
+            services.AddScoped<ISuperAdminWriteRepository, SuperAdminWriteRepository>();
         }
     }
 }

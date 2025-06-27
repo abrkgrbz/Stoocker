@@ -1,6 +1,9 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Stoocker.Application.Interfaces.Services;
+using Stoocker.Application.Services;
 using Stoocker.Domain.Constants;
 using Stoocker.Domain.Entities;
 using Stoocker.Domain.Enums;
@@ -17,7 +20,7 @@ namespace Stoocker.Persistence.Seeds
             var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
             var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
             var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<ApplicationRole>>();
-
+            var superAdminService = scope.ServiceProvider.GetRequiredService<ISuperAdminService>();
             try
             {
                 // Database migration
@@ -28,6 +31,22 @@ namespace Stoocker.Persistence.Seeds
 
                 // Seed data with permissions
                 await SeedDataAsync(context, userManager, roleManager);
+
+                var superAdminExists = await context.Set<SuperAdmin>().AnyAsync();
+                if (!superAdminExists)
+                {
+                    var email = Environment.GetEnvironmentVariable("SUPER_ADMIN_EMAIL") ?? "superadmin@stoocker.com";
+                    var password = Environment.GetEnvironmentVariable("SUPER_ADMIN_PASSWORD") ?? "SuperAdmin123!@#";
+
+                    await superAdminService.CreateSuperAdminAsync(
+                        email,
+                        password,
+                    "Super",
+                    "Admin"
+                    );
+                     
+                    Console.WriteLine($"SuperAdmin created - Email: {email}, Password: {password}");
+                }
             }
             catch (Exception ex)
             {

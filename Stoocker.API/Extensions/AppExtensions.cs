@@ -7,11 +7,31 @@ namespace Stoocker.API.Extensions
     {
         public static void UseSwaggerExtension(this IApplicationBuilder app)
         {
-            app.UseSwagger();
-            app.UseSwaggerUI(c =>
+            app.UseSwagger(options =>
             {
-                c.SwaggerEndpoint("/swagger/v1/swagger.json", "Stoocker API V1");
-                c.RoutePrefix = string.Empty; // Set Swagger UI at the app's root
+                options.RouteTemplate = "swagger/{documentName}/swagger.json";
+            });
+
+            app.UseSwaggerUI(options =>
+            { 
+                options.SwaggerEndpoint("/swagger/v1/swagger.json", "Stoocker API v1"); 
+                options.SwaggerEndpoint("/swagger/admin/swagger.json", "Stoocker Admin API"); 
+                options.DocumentTitle = "Stoocker API Documentation";
+                options.DocExpansion(Swashbuckle.AspNetCore.SwaggerUI.DocExpansion.None);
+                options.DefaultModelExpandDepth(2);
+                options.DefaultModelRendering(Swashbuckle.AspNetCore.SwaggerUI.ModelRendering.Model);
+                options.DisplayRequestDuration();
+                options.EnableFilter();
+                options.EnableTryItOutByDefault(); 
+                options.RoutePrefix = "swagger";    
+            });
+             
+            app.UseSwaggerUI(options =>
+            {
+                options.SwaggerEndpoint("/swagger/admin/swagger.json", "Admin API");
+                options.RoutePrefix = "admin/swagger";
+                options.DocumentTitle = "Stoocker Admin API"; 
+                options.InjectStylesheet("/swagger-ui/admin-theme.css");
             });
         }
 
@@ -45,6 +65,13 @@ namespace Stoocker.API.Extensions
 
             app.UseMiddleware<TenantMiddleware>();
         }
+
+        public static void UseAdminAreaHandlingMiddleware(this IApplicationBuilder app)
+        {
+            app.UseAdminAreaMiddleware();
+        }
+
+
 
     }
 }

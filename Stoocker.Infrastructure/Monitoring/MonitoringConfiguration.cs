@@ -14,113 +14,237 @@ using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 namespace Stoocker.Infrastructure.Monitoring
 {
-    public static class MonitoringConfiguration
-    {
-        public static IServiceCollection AddMonitoringConfiguration(this IServiceCollection services, IConfiguration configuration)
-        {
-            // Add health checks
-            services.AddHealthChecks()
-                .AddSqlServer(
-                    configuration.GetConnectionString("SqlConnection") ?? "",
-                    name: "database",
-                    tags: new[] { "db", "sql", "sqlserver" })
-                .AddHangfire(
-                    options => options.MinimumAvailableServers = 1,
-                    name: "hangfire",
-                    tags: new[] { "hangfire", "jobs" })
-                .AddCheck<DiskSpaceHealthCheck>(
-                    "disk_space",
-                    tags: new[] { "disk", "storage" })
-                .AddCheck<MemoryHealthCheck>(
-                    "memory",
-                    tags: new[] { "memory", "ram" })
-                .AddCheck<CpuHealthCheck>(
-                    "cpu",
-                    tags: new[] { "cpu", "processor" });
+    using Microsoft.AspNetCore.Builder;
+    using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+    using Microsoft.AspNetCore.Http;
+    using Microsoft.Extensions.Configuration;
+    using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.Diagnostics.HealthChecks;
+    using OpenTelemetry.Metrics;
+    using OpenTelemetry.Resources;
+    using OpenTelemetry.Trace;
+    using Prometheus; 
+    using System.Text.Json;
+    using System.Text.Json.Serialization;
+    using HealthChecks.UI.Client;
+    using global::Stoocker.Infrastructure.BackgroundJobs;
+    using OpenTelemetry.Exporter;
 
-            // Redis health check ekle
-            var redisConnection = configuration.GetConnectionString("RedisConnection");
-            if (!string.IsNullOrEmpty(redisConnection))
+    namespace Stoocker.Infrastructure.Monitoring
+    {
+        public static class MonitoringConfiguration
+        {
+            public static IServiceCollection AddMonitoringConfiguration(this IServiceCollection services, IConfiguration configuration)
             {
-                services.AddHealthChecks()
-                    .AddRedis(redisConnection, name: "redis", tags: new[] { "cache", "redis" });
+                var monitoringConfig = configuration.GetSection("Monitoring");
+
+                // Health Checks
+                if (monitoringConfig.GetValue<bool>("HealthChecks:Enabled", true))
+                {
+                    AddHealthChecks(services, configuration);
+
+                    // Health Checks UI
+                    if (monitoringConfig.GetValue<bool>("HealthChecks:UI:Enabled", true))
+                    {
+                        AddHealthChecksUI(services, configuration);
+                    }
+                }
+
+                // OpenTelemetry
+                if (monitoringConfig.GetValue<bool>("OpenTelemetry:Enabled", true))
+                {
+                    AddOpenTelemetry(services, configuration);
+                }
+
+                // Prometheus
+                if (monitoringConfig.GetValue<bool>("Prometheus:Enabled", true))
+                {
+                    // Prometheus metrics are handled by OpenTelemetry or standalone
+                }
+
+                // Custom metrics service
+                services.AddSingleton<IMetricsService, MetricsService>();
+
+                return services;
             }
 
-            // Add health check UI
-            services.AddHealthChecksUI(options =>
+            private static void AddHealthChecks(IServiceCollection services, IConfiguration configuration)
             {
-                options.SetEvaluationTimeInSeconds(30);
-                options.MaximumHistoryEntriesPerEndpoint(50);
-                options.AddHealthCheckEndpoint("Stoocker API Health", "/health");
-            }).AddInMemoryStorage();
+                var sqlConnectionString = configuration.GetConnectionString("SqlConnection");
+                var redisConnectionString = configuration.GetConnectionString("RedisConnection");
 
-            // Add OpenTelemetry
-            services.AddOpenTelemetry()
-                .ConfigureResource(resource => resource
-                    .AddService(
-                        serviceName: "Stoocker",
-                        serviceVersion: typeof(MonitoringConfiguration).Assembly.GetName().Version?.ToString() ?? "1.0.0"))
-                .WithTracing(tracing => tracing
-                    .AddAspNetCoreInstrumentation()
-                    .AddHttpClientInstrumentation())
-                .WithMetrics(metrics => metrics
-                    .AddAspNetCoreInstrumentation()
-                    .AddHttpClientInstrumentation());
+                var healthChecksBuilder = services.AddHealthChecks();
 
-            // Add custom metrics
-            services.AddSingleton<IMetricsService, MetricsService>();
-
-            return services;
-        }
-        public static IApplicationBuilder UseMonitoringConfiguration(this IApplicationBuilder app)
-        {
-            // Use health checks
-            app.UseHealthChecks("/health", new HealthCheckOptions
-            {
-                Predicate = _ => true,
-                ResponseWriter = WriteHealthCheckResponse
-            });
-
-            // Use health checks UI
-            app.UseHealthChecksUI(options =>
-            {
-                options.UIPath = "/health-ui";
-                options.ApiPath = "/health-ui-api";
-            });
-
-            // Use Prometheus metrics
-            app.UseHttpMetrics(); // Automatic HTTP metrics
-            app.UseMetricServer(); // Expose /metrics endpoint
-
-            return app;
-        }
-
-        private static async Task WriteHealthCheckResponse(HttpContext context, HealthReport report)
-        {
-            context.Response.ContentType = "application/json";
-
-            var options = new JsonSerializerOptions
-            {
-                WriteIndented = true,
-                DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
-            };
-
-            var response = new
-            {
-                status = report.Status.ToString(),
-                duration = report.TotalDuration.TotalMilliseconds,
-                info = report.Entries.Select(e => new
+                // SQL Server
+                if (!string.IsNullOrEmpty(sqlConnectionString))
                 {
-                    key = e.Key,
-                    description = e.Value.Description,
-                    duration = e.Value.Duration.TotalMilliseconds,
-                    status = e.Value.Status.ToString(),
-                    error = e.Value.Exception?.Message,
-                    data = e.Value.Data
-                })
-            };
+                    healthChecksBuilder.AddSqlServer(
+                        sqlConnectionString,
+                        name: "database",
+                        tags: new[] { "db", "sql", "sqlserver" });
+                }
 
-            await context.Response.WriteAsync(JsonSerializer.Serialize(response, options));
+                // Redis
+                if (!string.IsNullOrEmpty(redisConnectionString))
+                {
+                    healthChecksBuilder.AddRedis(
+                        redisConnectionString,
+                        name: "redis",
+                        tags: new[] { "cache", "redis" });
+                }
+
+                // Custom health checks
+                healthChecksBuilder
+                    .AddCheck<DiskSpaceHealthCheck>("disk_space", tags: new[] { "disk", "storage" })
+                    .AddCheck<MemoryHealthCheck>("memory", tags: new[] { "memory", "ram" })
+                    .AddCheck<CpuHealthCheck>("cpu", tags: new[] { "cpu", "processor" });
+
+                // Hangfire (if configured)
+                if (services.Any(x => x.ServiceType.Name.Contains("Hangfire")))
+                {
+                    healthChecksBuilder.AddHangfire(
+                        options => options.MinimumAvailableServers = 1,
+                        name: "hangfire",
+                        tags: new[] { "hangfire", "jobs" });
+                }
+            }
+
+            private static void AddHealthChecksUI(IServiceCollection services, IConfiguration configuration)
+            {
+                var uiConfig = configuration.GetSection("Monitoring:HealthChecks:UI");
+
+                services.AddHealthChecksUI(options =>
+                {
+                    options.SetEvaluationTimeInSeconds(
+                        uiConfig.GetValue<int>("EvaluationTimeInSeconds", 30));
+
+                    options.MaximumHistoryEntriesPerEndpoint(50);
+
+                    // Add configured endpoints
+                    var endpoints = configuration.GetSection("Monitoring:HealthChecks:Endpoints").GetChildren();
+                    foreach (var endpoint in endpoints)
+                    {
+                        var name = endpoint.GetValue<string>("Name");
+                        var uri = endpoint.GetValue<string>("Uri");
+                        if (!string.IsNullOrEmpty(name) && !string.IsNullOrEmpty(uri))
+                        {
+                            options.AddHealthCheckEndpoint(name, uri);
+                        }
+                    }
+                })
+                .AddInMemoryStorage();
+            }
+
+            private static void AddOpenTelemetry(IServiceCollection services, IConfiguration configuration)
+            {
+                var otConfig = configuration.GetSection("Monitoring:OpenTelemetry");
+                var serviceName = otConfig.GetValue<string>("ServiceName") ?? "Stoocker";
+                var serviceVersion = otConfig.GetValue<string>("ServiceVersion") ?? "1.0.0";
+
+                services.AddOpenTelemetry()
+                    .ConfigureResource(resource => resource
+                        .AddService(serviceName: serviceName, serviceVersion: serviceVersion)
+                        .AddAttributes(new Dictionary<string, object>
+                        {
+                            ["deployment.environment"] = configuration["ASPNETCORE_ENVIRONMENT"] ?? "Development"
+                        }))
+                    .WithTracing(tracing =>
+                    {
+                        tracing.AddAspNetCoreInstrumentation(options =>
+                        {
+                            options.RecordException = otConfig.GetValue<bool>("Instrumentation:AspNetCore:RecordException", true);
+                        })
+                        .AddHttpClientInstrumentation(options =>
+                        {
+                            options.RecordException = otConfig.GetValue<bool>("Instrumentation:Http:RecordException", true);
+                        });
+
+                        // OTLP Exporter
+                        if (otConfig.GetValue<bool>("Exporters:Otlp:Enabled", true))
+                        {
+                            tracing.AddOtlpExporter(options =>
+                            {
+                                options.Endpoint = new Uri(otConfig.GetValue<string>("Exporters:Otlp:Endpoint") ?? "http://localhost:4317");
+                                options.Protocol = OtlpExportProtocol.Grpc;
+                            });
+                        }
+
+                        // Console Exporter (for debugging)
+                        if (otConfig.GetValue<bool>("Exporters:Console:Enabled", false))
+                        {
+                            tracing.AddConsoleExporter();
+                        }
+
+                        // Sampling
+                        var samplingProbability = otConfig.GetValue<double>("Sampling:Probability", 1.0);
+                        if (samplingProbability < 1.0)
+                        {
+                            tracing.SetSampler(new TraceIdRatioBasedSampler(samplingProbability));
+                        }
+                    })
+                    .WithMetrics(metrics =>
+                    {
+                        metrics.AddAspNetCoreInstrumentation()
+                               .AddHttpClientInstrumentation()
+                               .AddRuntimeInstrumentation()
+                               .AddProcessInstrumentation();
+
+                        // Prometheus Exporter
+                        if (otConfig.GetValue<bool>("Exporters:Prometheus:Enabled", true))
+                        {
+                            metrics.AddPrometheusExporter();
+                        }
+
+                        // OTLP Exporter for metrics
+                        if (otConfig.GetValue<bool>("Exporters:Otlp:Enabled", true))
+                        {
+                            metrics.AddOtlpExporter(options =>
+                            {
+                                options.Endpoint = new Uri(otConfig.GetValue<string>("Exporters:Otlp:Endpoint") ?? "http://localhost:4317");
+                                options.Protocol = OtlpExportProtocol.Grpc;
+                            });
+                        }
+                    });
+            }
+
+            public static IApplicationBuilder UseMonitoringConfiguration(this IApplicationBuilder app, IConfiguration configuration)
+            {
+                var monitoringConfig = configuration.GetSection("Monitoring");
+
+                // Health checks
+                if (monitoringConfig.GetValue<bool>("HealthChecks:Enabled", true))
+                {
+                    app.UseHealthChecks("/health", new HealthCheckOptions
+                    {
+                        Predicate = _ => true,
+                        ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
+                    });
+
+                    // Health checks UI
+                    if (monitoringConfig.GetValue<bool>("HealthChecks:UI:Enabled", true))
+                    {
+                        var uiPath = monitoringConfig.GetValue<string>("HealthChecks:UI:Path") ?? "/health-ui";
+                        var apiPath = monitoringConfig.GetValue<string>("HealthChecks:UI:ApiPath") ?? "/health-ui-api";
+
+                        app.UseHealthChecksUI(options =>
+                        {
+                            options.UIPath = uiPath;
+                            options.ApiPath = apiPath;
+                        });
+                    }
+                }
+
+                // Prometheus metrics
+                if (monitoringConfig.GetValue<bool>("Prometheus:Enabled", true))
+                {
+                    app.UseHttpMetrics();
+
+                    var metricsPath = monitoringConfig.GetValue<string>("Prometheus:MetricsPath") ?? "/metrics";
+                    app.UseMetricServer(metricsPath);
+                }
+
+                return app;
+            }
         }
     }
 

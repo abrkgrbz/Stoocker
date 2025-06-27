@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using AutoMapper;
 using Stoocker.Application.DTOs.Common;
 using TenantStatus = Stoocker.Application.DTOs.Tenant.Response.TenantStatus;
+using Stoocker.Application.Features.Commands.Tenant.Create;
 
 namespace Stoocker.Application.Mappings.Tenant
 {
@@ -52,6 +53,16 @@ namespace Stoocker.Application.Mappings.Tenant
                 .ForMember(dest => dest.Domain, opt => opt.Ignore()).ReverseMap(); // Domain separately handled
 
             CreateMap<PagedResult<TenantResponse>, PagedResult<Domain.Entities.Tenant>>().ReverseMap();
+
+            // Request to Command mappings
+            CreateMap<CreateTenantRequest, CreateTenantCommand>()
+                .ForMember(dest => dest.AdminUser, opt => opt.MapFrom(src => src.AdminUser))
+                .ForMember(dest => dest.InitialSettings, opt => opt.MapFrom(src => src.InitialSettings));
+
+            CreateMap<AdminUserSetup, AdminUserSetupCommand>();
+
+            CreateMap<InitialTenantSettings, InitialTenantSettingsCommand>();
+ 
         }
 
         private static TenantStatus GetTenantStatus(Domain.Entities.Tenant tenant)

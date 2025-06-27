@@ -1,0 +1,86 @@
+global:
+  scrape_interval: 15s          # Varsayılan scrape aralığı
+  evaluation_interval: 15s      # Rule değerlendirme aralığı
+  scrape_timeout: 10s          # Scrape timeout
+
+  # External labels - Prometheus server'ı tanımlamak için
+  external_labels:
+    monitor: 'stoocker-monitoring'
+    environment: 'development'
+
+# Alertmanager configuration
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+            - alertmanager:9093
+
+# Rule files - Alert kuralları
+rule_files:
+  - "rules/*.yml"
+
+# Scrape configurations
+scrape_configs:
+  # Stoocker Application Metrics
+  - job_name: 'stoocker-app'
+    metrics_path: '/metrics'
+    static_configs:
+      - targets:
+          - 'localhost:5081'  # Windows/Mac için
+          # - '172.17.0.1:5001'         # Linux için
+        labels:
+          app: 'stoocker'
+          tier: 'backend'
+
+  # Health Check Endpoint
+  - job_name: 'stoocker-health'
+    metrics_path: '/health'
+    scrape_interval: 30s
+    static_configs:
+      - targets:
+          - 'localhost:5081'
+        labels:
+          app: 'stoocker'
+          type: 'health'
+
+  # Prometheus self-monitoring
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+        labels:
+          app: 'prometheus'
+
+  # Node Exporter - System metrics
+  - job_name: 'node-exporter'
+    static_configs:
+      - targets: ['node-exporter:9100']
+        labels:
+          app: 'node-exporter'
+
+  # Redis Exporter (Redis metrics için ayrı exporter gerekir)
+  # - job_name: 'redis'
+  #   static_configs:
+  #     - targets: ['redis-exporter:9121']
+  #       labels:
+  #         app: 'redis'
+
+  # SQL Server Exporter (SQL Server metrics için)
+  # - job_name: 'sqlserver'
+  #   static_configs:
+  #     - targets: ['sql-exporter:4000']
+  #       labels:
+  #         app: 'sqlserver'
+
+  # Jaeger metrics
+  - job_name: 'jaeger'
+    static_configs:
+      - targets: ['jaeger:14269']
+        labels:
+          app: 'jaeger'
+
+  # Grafana metrics
+  - job_name: 'grafana'
+    static_configs:
+      - targets: ['grafana:3000']
+        labels:
+          app: 'grafana'

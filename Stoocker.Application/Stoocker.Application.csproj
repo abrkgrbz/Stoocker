@@ -11,7 +11,6 @@
     <Folder Include="Features\Commands\ApplicationRole\Delete\" />
     <Folder Include="Features\Commands\ApplicationRole\Update\" />
     <Folder Include="Features\Commands\Brand\Delete\" />
-    <Folder Include="Features\Commands\Tenant\" />
   </ItemGroup>
 
   <ItemGroup>

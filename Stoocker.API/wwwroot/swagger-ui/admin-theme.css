@@ -1,0 +1,65 @@
+﻿
+.swagger-ui .topbar {
+    background-color: #dc3545 !important;
+}
+
+    .swagger-ui .topbar .download-url-wrapper .download-url-button {
+        background-color: #a71d2a !important;
+    }
+
+        .swagger-ui .topbar .download-url-wrapper .download-url-button:hover {
+            background-color: #7f161f !important;
+        }
+
+.swagger-ui .info .title {
+    color: #dc3545;
+}
+
+.swagger-ui .scheme-container {
+    background-color: #fff5f5;
+    border: 1px solid #dc3545;
+}
+
+.swagger-ui .btn.authorize {
+    background-color: #fff;
+    border-color: #fff;
+}
+
+    .swagger-ui .btn.authorize:hover {
+        background-color: #a71d2a;
+        border-color: #a71d2a;
+    }
+
+.swagger-ui .authorization__btn.locked {
+    background-color: #28a745;
+    border-color: #28a745;
+}
+
+/* Warning banner for admin area */
+.swagger-ui .info:before {
+    content: "⚠️ WARNING: This is the Admin API. Use with caution!";
+    display: block;
+    background-color: #dc3545;
+    color: white;
+    padding: 10px;
+    margin-bottom: 20px;
+    border-radius: 4px;
+    font-weight: bold;
+}
+
+/* HTTP method colors */
+.swagger-ui .opblock.opblock-post .opblock-summary-method {
+    background: #49cc90;
+}
+
+.swagger-ui .opblock.opblock-get .opblock-summary-method {
+    background: #61affe;
+}
+
+.swagger-ui .opblock.opblock-delete .opblock-summary-method {
+    background: #f93e3e;
+}
+
+.swagger-ui .opblock.opblock-put .opblock-summary-method {
+    background: #fca130;
+}

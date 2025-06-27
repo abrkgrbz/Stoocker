@@ -1,0 +1,98 @@
+﻿<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stoocker'a Hoş Geldiniz</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f4f4f4;">
+    <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f4f4f4; padding: 20px 0;">
+        <tr>
+            <td align="center">
+                <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                    <!-- Header -->
+                    <tr>
+                        <td style="background-color: #007bff; padding: 40px; text-align: center; border-radius: 8px 8px 0 0;">
+                            <h1 style="color: #ffffff; margin: 0;">Stoocker'a Hoş Geldiniz!</h1>
+                        </td>
+                    </tr>
+
+                    <!-- Content -->
+                    <tr>
+                        <td style="padding: 40px;">
+                            <p style="font-size: 18px; color: #333333; margin-bottom: 20px;">Merhaba {{FullName}},</p>
+
+                            <p style="color: #666666; line-height: 1.6;">
+                                Stoocker ailesine katıldığınız için çok mutluyuz! Hesabınız başarıyla oluşturuldu ve artık platformumuzun tüm özelliklerinden yararlanabilirsiniz.
+                            </p>
+
+                            <!-- Login Info Box -->
+                            <div style="background-color: #f8f9fa; padding: 25px; border-radius: 5px; margin: 30px 0;">
+                                <h3 style="margin-top: 0; color: #333333;">Giriş Bilgileriniz:</h3>
+                                <table width="100%" cellpadding="5">
+                                    <tr>
+                                        <td style="color: #666666;"><strong>E-posta:</strong></td>
+                                        <td style="color: #333333;">{{Email}}</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="color: #666666;"><strong>Geçici Şifre:</strong></td>
+                                        <td>
+                                            <span style="font-family: 'Courier New', monospace; background-color: #e9ecef; padding: 5px 10px; border-radius: 3px; color: #333333;">{{TempPassword}}</span>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+
+                            <!-- Warning Box -->
+                            <div style="background-color: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; margin: 20px 0;">
+                                <p style="margin: 0; color: #856404;">
+                                    <strong>⚠️ Güvenlik Uyarısı:</strong> İlk girişinizde lütfen şifrenizi değiştirin!
+                                </p>
+                            </div>
+
+                            <!-- Steps -->
+                            <h3 style="color: #333333;">Başlamak için:</h3>
+                            <ol style="color: #666666; line-height: 1.8;">
+                                <li>Aşağıdaki butona tıklayarak giriş yapın</li>
+                                <li>Güvenliğiniz için hemen şifrenizi değiştirin</li>
+                                <li>Profil bilgilerinizi tamamlayın</li>
+                                <li>Stoocker'ın sunduğu özellikleri keşfedin!</li>
+                            </ol>
+
+                            <!-- CTA Button -->
+                            <table width="100%" cellpadding="0" cellspacing="0" style="margin: 30px 0;">
+                                <tr>
+                                    <td align="center">
+                                        <a href="{{LoginUrl}}" style="display: inline-block; padding: 15px 40px; background-color: #007bff; color: #ffffff; text-decoration: none; border-radius: 5px; font-weight: bold;">Giriş Yap</a>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <p style="color: #666666; line-height: 1.6;">
+                                Herhangi bir sorunuz olursa, destek ekibimiz size yardımcı olmaktan mutluluk duyacaktır.
+                            </p>
+
+                            <p style="color: #666666;">
+                                Saygılarımızla,<br>
+                                <strong>Stoocker Ekibi</strong>
+                            </p>
+                        </td>
+                    </tr>
+
+                    <!-- Footer -->
+                    <tr>
+                        <td style="background-color: #f8f9fa; padding: 30px; text-align: center; border-radius: 0 0 8px 8px;">
+                            <p style="color: #999999; font-size: 12px; margin: 5px 0;">
+                                Bu e-posta {{Email}} adresine gönderilmiştir.
+                            </p>
+                            <p style="color: #999999; font-size: 12px; margin: 5px 0;">
+                                © {{Year}} Stoocker. Tüm hakları saklıdır.
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>

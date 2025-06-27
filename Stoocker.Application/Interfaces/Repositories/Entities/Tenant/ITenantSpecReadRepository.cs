@@ -11,5 +11,9 @@ namespace Stoocker.Application.Interfaces.Repositories.Entities.Tenant
     {
         Task<IEnumerable<Domain.Entities.Tenant>> GetPagedAsync(Guid tenantId, int page = 1, int pageSize = 10,
             CancellationToken cancellationToken = default);
+
+        Task<Domain.Entities.Tenant?> GetByDomainAsync(string domain,CancellationToken cancellationToken = default);
+
+
     }
 }

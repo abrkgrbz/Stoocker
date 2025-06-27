@@ -1,0 +1,68 @@
+groups:
+  - name: stoocker_alerts
+    interval: 30s
+    rules:
+      # Application Down
+      - alert: StockerApplicationDown
+        expr: up{job="stoocker-app"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          app: stoocker
+        annotations:
+          summary: "Stoocker application is down"
+          description: "Stoocker application has been down for more than 2 minutes."
+
+      # High CPU Usage
+      - alert: HighCpuUsage
+        expr: rate(process_cpu_seconds_total{job="stoocker-app"}[5m]) * 100 > 80
+        for: 5m
+        labels:
+          severity: warning
+          app: stoocker
+        annotations:
+          summary: "High CPU usage detected"
+          description: "CPU usage is above 80% for more than 5 minutes."
+
+      # High Memory Usage
+      - alert: HighMemoryUsage
+        expr: (process_working_set_bytes{job="stoocker-app"} / 1024 / 1024 / 1024) > 2
+        for: 5m
+        labels:
+          severity: warning
+          app: stoocker
+        annotations:
+          summary: "High memory usage detected"
+          description: "Memory usage is above 2GB for more than 5 minutes."
+
+      # High Response Time
+      - alert: HighResponseTime
+        expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket{job="stoocker-app"}[5m])) > 1
+        for: 5m
+        labels:
+          severity: warning
+          app: stoocker
+        annotations:
+          summary: "High response time detected"
+          description: "95th percentile response time is above 1 second."
+
+      # High Error Rate
+      - alert: HighErrorRate
+        expr: rate(http_requests_total{job="stoocker-app",status=~"5.."}[5m]) > 0.05
+        for: 5m
+        labels:
+          severity: critical
+          app: stoocker
+        annotations:
+          summary: "High error rate detected"
+          description: "Error rate is above 5% for more than 5 minutes."
+
+      # Disk Space Low
+      - alert: DiskSpaceLow
+        expr: (node_filesystem_avail_bytes{mountpoint="/"} / node_filesystem_size_bytes{mountpoint="/"}) * 100 < 10
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Low disk space"
+          description: "Disk space is below 10%."
