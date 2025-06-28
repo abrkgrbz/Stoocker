@@ -1,0 +1,230 @@
+name: Stoocker CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+env:
+  DOTNET_VERSION: '9.0.x'
+  SOLUTION_FILE: 'Stoocker.sln'
+  API_PROJECT: 'Stoocker.API/Stoocker.API.csproj'
+  TEST_PROJECT: 'Stoocker.Tests/Stoocker.Tests.csproj'
+
+jobs:
+  # Build ve Test Job
+  build-and-test:
+    runs-on: ubuntu-latest
+    name: Build and Test
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+        
+    - name: Cache NuGet packages
+      uses: actions/cache@v4
+      with:
+        path: ~/.nuget/packages
+        key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
+        restore-keys: |
+          ${{ runner.os }}-nuget-
+          
+    - name: Restore dependencies
+      run: dotnet restore ${{ env.SOLUTION_FILE }}
+      
+    - name: Build solution
+      run: dotnet build ${{ env.SOLUTION_FILE }} --no-restore --configuration Release
+      
+    - name: Run unit tests
+      run: dotnet test ${{ env.TEST_PROJECT }} --no-build --configuration Release --verbosity normal --collect:"XPlat Code Coverage"
+      
+    - name: Upload test results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: test-results
+        path: |
+          **/TestResults/**/*.xml
+          **/TestResults/**/*.trx
+          
+    - name: Code Coverage Report
+      uses: irongut/CodeCoverageSummary@v1.3.0
+      with:
+        filename: '**/coverage.cobertura.xml'
+        badge: true
+        fail_below_min: false
+        format: markdown
+        hide_branch_rate: false
+        hide_complexity: true
+        indicators: true
+        output: both
+        thresholds: '60 80'
+
+  # Security Scan Job
+  security-scan:
+    runs-on: ubuntu-latest
+    name: Security Scan
+    needs: build-and-test
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+        
+    - name: Run security audit
+      run: dotnet list package --vulnerable --include-transitive
+      
+    - name: Install security scan tool
+      run: dotnet tool install --global security-scan
+      continue-on-error: true
+      
+    - name: Run security scan
+      run: security-scan ${{ env.SOLUTION_FILE }}
+      continue-on-error: true
+
+  # Docker Build Job
+  docker-build:
+    runs-on: ubuntu-latest
+    name: Docker Build
+    needs: build-and-test
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+      
+    - name: Login to Docker Hub
+      uses: docker/login-action@v3
+      with:
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
+      
+    - name: Extract metadata
+      id: meta
+      uses: docker/metadata-action@v5
+      with:
+        images: ${{ secrets.DOCKER_USERNAME }}/stoocker-api
+        tags: |
+          type=ref,event=branch
+          type=ref,event=pr
+          type=sha,prefix={{branch}}-
+          type=raw,value=latest,enable={{is_default_branch}}
+          
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        file: ./Stoocker.API/Dockerfile
+        push: true
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+
+  # Performance Test Job (Opsiyonel)
+  performance-test:
+    runs-on: ubuntu-latest
+    name: Performance Test
+    needs: build-and-test
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+        
+    - name: Build API
+      run: dotnet build ${{ env.API_PROJECT }} --configuration Release
+      
+    - name: Run API in background
+      run: |
+        dotnet run --project ${{ env.API_PROJECT }} --configuration Release &
+        echo $! > api.pid
+        sleep 30
+        
+    - name: Install NBomber CLI
+      run: dotnet tool install --global NBomber.CLI
+      continue-on-error: true
+      
+    - name: Run load test
+      run: |
+        curl -f http://localhost:5000/health || echo "Health check failed"
+        # NBomber test komutları buraya eklenebilir
+      continue-on-error: true
+      
+    - name: Stop API
+      run: |
+        if [ -f api.pid ]; then
+          kill $(cat api.pid)
+        fi
+
+  # Database Migration Job (Production için)
+  deploy-migrations:
+    runs-on: ubuntu-latest
+    name: Deploy Database Migrations
+    needs: [build-and-test, security-scan]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    environment: production
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+        
+    - name: Install EF Core CLI
+      run: dotnet tool install --global dotnet-ef
+      
+    - name: Update database
+      run: |
+        dotnet ef database update --project Stoocker.Persistence --startup-project Stoocker.API --connection "${{ secrets.DATABASE_CONNECTION_STRING }}"
+      env:
+        ASPNETCORE_ENVIRONMENT: Production
+
+  # Deployment Job
+  deploy:
+    runs-on: ubuntu-latest
+    name: Deploy to Production
+    needs: [docker-build, deploy-migrations]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    environment: production
+    
+    steps:
+    - name: Deploy to Azure/AWS/Other
+      run: |
+        echo "Deployment scripts buraya eklenecek"
+        echo "Docker image: ${{ secrets.DOCKER_USERNAME }}/stoocker-api:latest"
+        # Azure Container Instances, AWS ECS, Kubernetes deployment komutları
+        
+    - name: Health Check
+      run: |
+        sleep 60
+        curl -f ${{ secrets.PRODUCTION_URL }}/health || exit 1
+        
+    - name: Notify Teams/Slack
+      uses: 8398a7/action-slack@v3
+      with:
+        status: ${{ job.status }}
+        webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+      if: always()
